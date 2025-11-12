@@ -1,6 +1,11 @@
-
 import { PrismaClient, MovimientoTipo, RequisaEstado } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { inferAdditionalFields } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react"
+import type { auth } from "../app/lib/auth";
+export const authClient = createAuthClient({
+  baseURL: process.env.BETTER_AUTH_URL,
+  plugins: [inferAdditionalFields<typeof auth>()],
+})
 
 const prisma = new PrismaClient();
 
@@ -21,49 +26,40 @@ async function main() {
   });
   console.log('Roles created');
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash('password123', salt);
+  const usersToCreate = [
+    { email: 'admin@example.com', name: 'Admin User', rolId: rolAdmin.id },
+    { email: 'bodeguero@example.com', name: 'Bodeguero User', rolId: rolBodeguero.id },
+    { email: 'supervisor@example.com', name: 'Supervisor User', rolId: rolSupervisor.id },
+    { email: 'jefe@example.com', name: 'Jefe User', rolId: rolJefe.id },
+  ];
 
-  await prisma.user.create({
-    data: {
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: hashedPassword,
-      rolId: rolAdmin.id,
-      emailVerified: true,
-    },
-  });
-
-  const userBodeguero = await prisma.user.create({
-    data: {
-      name: 'Bodeguero User',
-      email: 'bodeguero@example.com',
-      password: hashedPassword,
-      rolId: rolBodeguero.id,
-      emailVerified: true,
-    },
-  });
-
-  const userSupervisor = await prisma.user.create({
-    data: {
-      name: 'Supervisor User',
-      email: 'supervisor@example.com',
-      password: hashedPassword,
-      rolId: rolSupervisor.id,
-      emailVerified: true,
-    },
-  });
-
-  await prisma.user.create({
-    data: {
-      name: 'Jefe User',
-      email: 'jefe@example.com',
-      password: hashedPassword,
-      rolId: rolJefe.id,
-      emailVerified: true,
-    },
-  });
+  for (const userData of usersToCreate) {
+    await authClient.signUp.email({
+      email: userData.email,
+      name: userData.name,
+      password: 'password123',
+      phone: '123456789',
+      direction: '123 Main St',
+      identification: '123456789',
+      estado: true,
+      rolId: userData.rolId,
+    });
+    const user = await prisma.user.findUnique({ where: { email: userData.email } });
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { rolId: userData.rolId, emailVerified: true },
+      });
+    }
+  }
   console.log('Users created');
+
+  const userBodeguero = await prisma.user.findFirst({ where: { rolId: rolBodeguero.id } });
+  const userSupervisor = await prisma.user.findFirst({ where: { rolId: rolSupervisor.id } });
+
+  if (!userBodeguero || !userSupervisor) {
+    throw new Error('Could not find users for seeding');
+  }
 
   const catHerramientas = await prisma.categoria.create({
     data: { nombre: 'Herramientas' },
@@ -71,6 +67,7 @@ async function main() {
   const catMateriales = await prisma.categoria.create({
     data: { nombre: 'Materiales de Construcción' },
   });
+  console.log('Categories created');
 
   const materialMartillo = await prisma.material.create({
     data: {

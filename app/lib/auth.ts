@@ -10,10 +10,11 @@ export const auth = betterAuth({
     }),
     user: {
         additionalFields: {
-            phone: { type: "string", required: true },
-            direction: { type: "string", required: true },
-            identification: { type: "string", required: true },
-            estado: { type: "boolean", required: true },
+            phone: { type: "string", required: true, input: true },
+            direction: { type: "string", required: true, input: true },
+            identification: { type: "string", required: true, input: true },
+            estado: { type: "boolean", required: true, input: true },
+            rolId: { type: "number", required: true, input: true },
         }
     },
     emailAndPassword: {
