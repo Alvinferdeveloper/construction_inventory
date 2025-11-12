@@ -13,16 +13,16 @@ async function main() {
   console.log('Start seeding ...');
 
   const rolAdmin = await prisma.rol.create({
-    data: { nombre: 'administrador', descripcion: 'Acceso total al sistema' },
+    data: { nombre: 'ADMINISTRADOR', descripcion: 'Acceso total al sistema' },
   });
   const rolBodeguero = await prisma.rol.create({
-    data: { nombre: 'bodeguero', descripcion: 'Gestión de inventario y bodegas' },
+    data: { nombre: 'BODEGUERO', descripcion: 'Gestión de inventario y bodegas' },
   });
   const rolSupervisor = await prisma.rol.create({
-    data: { nombre: 'supervisor', descripcion: 'Supervisa proyectos y requisas' },
+    data: { nombre: 'SUPERVISOR', descripcion: 'Supervisa proyectos y requisas' },
   });
   const rolJefe = await prisma.rol.create({
-    data: { nombre: 'jefe', descripcion: 'Jefe de obra o proyecto' },
+    data: { nombre: 'JEFE', descripcion: 'Jefe de obra o proyecto' },
   });
   console.log('Roles created');
 
