@@ -7,6 +7,7 @@ import { AvatarComponent } from "@/app/(feat)/components/Avatar"
 import { auth } from "@/app/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import SignOutButton from "@/app/(feat)/components/SignOutButton"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({
@@ -44,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <span>Soporte</span>
           </div>
 
-          <SidebarItem text="Cerrar sesión" icon={config.iconos["Cerrar sesión"]} isLast />
+          <SignOutButton />
         </nav>
       </aside>
 
