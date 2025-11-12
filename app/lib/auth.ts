@@ -1,10 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-
-import { PrismaClient } from "@prisma/client";
 import { customSession } from "better-auth/plugins";
-import { User, Session } from "better-auth";
-const prisma = new PrismaClient();
+import prisma from "@/app/lib/prisma";
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "mysql",
