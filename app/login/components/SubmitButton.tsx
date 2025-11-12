@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button"
-import { useFormStatus } from "react-dom"
 
-export default function SubmitButton() {
-    const { pending } = useFormStatus()
+export default function SubmitButton({ loading }: { loading: boolean }) {
     return (
         <Button
             type="submit"
             className="w-full cursor-pointer bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg transition-colors"
-            disabled={pending}
+            disabled={loading}
         >
-            {pending ? "Verificando..." : "Iniciar Sesión"}
+            {loading ? "Verificando..." : "Iniciar Sesión"}
         </Button>
     )
 }

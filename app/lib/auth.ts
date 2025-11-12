@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 
 import { PrismaClient } from "@prisma/client";
 import { customSession } from "better-auth/plugins";
+import { User, Session } from "better-auth";
 const prisma = new PrismaClient();
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
@@ -15,6 +16,7 @@ export const auth = betterAuth({
             identification: { type: "string", required: true, input: true },
             estado: { type: "boolean", required: true, input: true },
             rolId: { type: "number", required: true, input: true },
+            rol: { type: "string", required: true, input: false },
         }
     },
     emailAndPassword: {
@@ -30,12 +32,21 @@ export const auth = betterAuth({
             });
 
             if (!userWithRole) {
-                return session;
+                return {
+                    user: {
+                        ...user,
+                        rol: ""
+                    },
+                    session
+                };
             }
 
             return {
-                ...session,
-                user: userWithRole
+                user: {
+                    ...user,
+                    rol: userWithRole.rol.nombre
+                },
+                session
             };
         })
     ]
