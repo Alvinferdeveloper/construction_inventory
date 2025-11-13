@@ -1,6 +1,6 @@
 "use client"
 
-import { startTransition, useState, type ReactNode } from "react"
+import { startTransition, useState, type ReactNode, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -10,19 +10,31 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Warehouse } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createBodega } from "@/app/lib/actions/bodegas"
 import { useActionState } from "react"
-import { useEffect } from "react"
 
-interface CreateBodegaModalProps {
-    children: ReactNode
-    bodegueros: { id: string; name: string }[]
+
+export interface Bodega {
+    id: number;
+    nombre: string;
+    ubicacion: string;
+    responsableId: string;
+}
+
+interface BodegaFormModalProps {
+    children: ReactNode;
+    bodegueros: { id: string; name: string }[];
+    action: (prevState: any, data: any) => Promise<any>;
+    initialData?: Bodega;
+    title: string;
+    description: string;
+    submitText: string;
 }
 
 const bodegaSchema = z.object({
     nombre: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
     ubicacion: z.string().min(3, { message: "La ubicación debe tener al menos 3 caracteres" }),
-    responsable: z.string({ message: "Debes seleccionar un responsable" })
+    responsable: z.string({ message: "Debes seleccionar un responsable" }),
+    id: z.number().optional(),
 })
 
 export type BodegaForm = z.infer<typeof bodegaSchema>
@@ -31,11 +43,19 @@ const INITIAL_VALUES = {
     nombre: "",
     ubicacion: "",
     responsable: "",
-    success: true,
+    success: false,
     message: ""
 }
 
-export default function CreateBodegaModal({ children, bodegueros }: CreateBodegaModalProps) {
+export default function BodegaFormModal({
+    children,
+    bodegueros,
+    action,
+    initialData,
+    title,
+    description,
+    submitText
+}: BodegaFormModalProps) {
     const [open, setOpen] = useState(false);
     const [error, setError] = useState("")
     const {
@@ -46,21 +66,37 @@ export default function CreateBodegaModal({ children, bodegueros }: CreateBodega
         reset,
     } = useForm<BodegaForm>({
         resolver: zodResolver(bodegaSchema),
+        defaultValues: initialData ? {
+            ...initialData,
+            responsable: initialData.responsableId
+        } : {}
     })
-    const [state, formAction] = useActionState(createBodega, INITIAL_VALUES);
+
+    const [state, formAction] = useActionState(action, INITIAL_VALUES);
 
     useEffect(() => {
         if (state.success) {
             setOpen(false)
-        }
-        else {
+        } else {
             setError(state.message)
         }
     }, [state])
 
+    useEffect(() => {
+        if (open && initialData) {
+            reset({
+                ...initialData,
+                responsable: initialData.responsableId
+            });
+        } else if (!open) {
+            reset(INITIAL_VALUES);
+        }
+    }, [open, initialData, reset])
+
     const onSubmit = async (data: BodegaForm) => {
         startTransition(() => {
-            formAction(data)
+            const dataToSubmit = initialData ? { ...data, id: initialData.id } : data;
+            formAction(dataToSubmit)
         })
     }
 
@@ -82,13 +118,15 @@ export default function CreateBodegaModal({ children, bodegueros }: CreateBodega
                     <div className="flex items-center gap-2">
                         <Warehouse className="w-5 h-5 text-primary" />
                         <div>
-                            <DialogTitle>Nueva Bodega</DialogTitle>
-                            <DialogDescription>Crea una nueva bodega ingresando los datos requeridos</DialogDescription>
+                            <DialogTitle>{title}</DialogTitle>
+                            <DialogDescription>{description}</DialogDescription>
                         </div>
                     </div>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    {initialData && <input type="hidden" {...register("id")} value={initialData.id} />}
+
                     <div className="space-y-2">
                         <Label htmlFor="nombre">Nombre de la Bodega</Label>
                         <Input
@@ -120,7 +158,7 @@ export default function CreateBodegaModal({ children, bodegueros }: CreateBodega
                                         <SelectValue placeholder="Seleccionar responsable" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {bodegueros.map((bodeguero: any) => (
+                                        {bodegueros.map((bodeguero) => (
                                             <SelectItem key={bodeguero.id} value={bodeguero.id}>
                                                 {bodeguero.name}
                                             </SelectItem>
@@ -139,7 +177,7 @@ export default function CreateBodegaModal({ children, bodegueros }: CreateBodega
                         <Button type="button" variant="outline" className="cursor-pointer" onClick={() => handleOpenChange(false)}>
                             Cancelar
                         </Button>
-                        <Button type="submit" className="cursor-pointer">Crear Bodega</Button>
+                        <Button type="submit" className="cursor-pointer">{submitText}</Button>
                     </div>
                 </form>
             </DialogContent>

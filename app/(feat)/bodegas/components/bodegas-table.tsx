@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import DeleteBodega from "@/app/(feat)/bodegas/components/buttons/DeleteBodega"
 import { getBodegas } from "@/app/lib/queries/bodegas"
+import { getBodegueros } from "@/app/lib/queries/bodegueros"
+import { updateBodega } from "@/app/lib/actions/bodegas"
+import BodegaFormModal from "@/app/(feat)/bodegas/components/bodega-form-modal"
 
 interface BodegasTableProps {
     currentPage: number
@@ -11,6 +14,8 @@ interface BodegasTableProps {
 
 export default async function BodegasTable({ currentPage }: BodegasTableProps) {
     const bodegas = await getBodegas(currentPage)
+    const bodegueros = await getBodegueros()
+    
     const getAvatarColor = (name: string) => {
         const colors = [
             "bg-blue-100 text-blue-700",
@@ -77,14 +82,27 @@ export default async function BodegasTable({ currentPage }: BodegasTableProps) {
 
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
-                                            title="Editar bodega"
+                                        <BodegaFormModal
+                                            bodegueros={bodegueros}
+                                            action={updateBodega}
+                                            title="Editar Bodega"
+                                            description="Editar la bodega"
+                                            submitText="Editar Bodega"
+                                            initialData={{
+                                                id: bodega.id,
+                                                nombre: bodega.nombre,
+                                                ubicacion: bodega.ubicacion,
+                                                responsableId: bodega.responsable.id
+                                            }}
                                         >
-                                            <Pencil className="w-4 h-4" />
-                                        </Button>
+                                            <span
+                                                className="h-8 flex items-center justify-center rounded-md cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
+                                                title="Editar bodega"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </span>
+                                        </BodegaFormModal>
+
                                         <DeleteBodega bodegaId={bodega.id} />
                                     </div>
                                 </TableCell>

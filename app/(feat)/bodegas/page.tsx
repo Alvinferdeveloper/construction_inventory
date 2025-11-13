@@ -1,11 +1,11 @@
 import { Warehouse, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import BodegasTable from "./components/bodegas-table"
-import { getBodegas } from "@/app/lib/queries/bodegas"
-import CreateBodegaModal from "@/app/(feat)/bodegas/components/create-bodega-modal"
+import BodegaFormModal from "@/app/(feat)/bodegas/components/bodega-form-modal"
 import { getBodegueros } from "@/app/lib/queries/bodegueros"
 import Paginate from "@/app/(feat)/components/shared/Pagination"
 import { getBodegasPages } from "@/app/lib/queries/bodegas"
+import { createBodega } from "@/app/lib/actions/bodegas"
 
 export default async function BodegasPage({ searchParams }: { searchParams: Promise<{ page: string }> }) {
     const bodegueros = await getBodegueros()
@@ -22,12 +22,12 @@ export default async function BodegasPage({ searchParams }: { searchParams: Prom
                             <p className="text-muted-foreground text-sm">Gestiona todas tus bodegas y sus responsables</p>
                         </div>
                     </div>
-                    <CreateBodegaModal bodegueros={bodegueros}>
+                    <BodegaFormModal bodegueros={bodegueros} action={createBodega} title="Nueva Bodega" description="Agregar una nueva bodega" submitText="Agregar Bodega">
                         <Button className="gap-2 cursor-pointer">
                             <Plus className="w-4 h-4" />
                             Nueva Bodega
                         </Button>
-                    </CreateBodegaModal>
+                    </BodegaFormModal>
                 </div>
                 <BodegasTable currentPage={Number(params.page) || 1} />
                 <Paginate totalPages={totalPages} />
