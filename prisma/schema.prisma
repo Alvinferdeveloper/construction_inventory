@@ -11,27 +11,30 @@ datasource db {
 }
 
 model Rol {
-  id          Int     @id @default(autoincrement())
-  nombre      String  @db.VarChar(100)
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
   descripcion String?
   users       User[]
+  deletedAt   DateTime?
 
   @@map("roles")
 }
 
 model User {
-  id             String   @id @default(cuid())
-  name           String   @db.VarChar(150)
-  email          String   @unique(map: "user_email_unique") // ✅ Agregar map único
-  password       String?  @db.VarChar(255)
-  phone          String?  @db.VarChar(20)
-  direction      String?  @db.Text
-  identification String?  @db.VarChar(20)
-  emailVerified  Boolean  @default(false)
-  image          String?  @db.Text
-  estado         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id             String    @id @default(cuid())
+  name           String    @db.VarChar(150)
+  email          String    @unique(map: "user_email_unique")
+  password       String?   @db.VarChar(255)
+  phone          String?   @db.VarChar(20)
+  direction      String?   @db.Text
+  identification String?   @db.VarChar(20)
+  emailVerified  Boolean   @default(false)
+  image          String?   @db.Text
+  estado         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  isActive       Boolean   @default(true)
+  deletedAt      DateTime?
 
   rolId       Int
   rol         Rol          @relation(fields: [rolId], references: [id])
@@ -41,28 +44,28 @@ model User {
   sessions    Session[]
   accounts    Account[]
 
-  @@unique([email], map: "user_email_composite_unique") // ✅ Map único para composite
+  @@unique([email], map: "user_email_composite_unique")
   @@map("users")
 }
 
 model Session {
-  id        String   @id @default(cuid()) // Agregado @default(cuid())
+  id        String   @id @default(cuid())
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ipAddress String?  @db.VarChar(45) // Cambiado a VarChar para IP
+  ipAddress String?  @db.VarChar(45)
   userAgent String?  @db.Text
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("sessions") // Corregido: plural
+  @@map("sessions")
 }
 
 model Account {
-  id                    String    @id @default(cuid()) // Agregado @default(cuid())
-  accountId             String    @db.VarChar(255) // Cambiado a VarChar
-  providerId            String    @db.VarChar(255) // Cambiado a VarChar
+  id                    String    @id @default(cuid())
+  accountId             String    @db.VarChar(255)
+  providerId            String    @db.VarChar(255)
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?   @db.Text
@@ -75,28 +78,30 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@unique([providerId, accountId]) // Agregado: unique constraint importante
-  @@map("accounts") // Corregido: plural
+  @@unique([providerId, accountId])
+  @@map("accounts")
 }
 
 model Verification {
-  id         String   @id @default(cuid()) // Agregado @default(cuid())
-  identifier String   @db.VarChar(255) // Cambiado a VarChar
+  id         String   @id @default(cuid())
+  identifier String   @db.VarChar(255)
   value      String   @db.Text
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@map("verifications") // Corregido: plural
+  @@map("verifications")
 }
 
 model Bodega {
   id            Int          @id @default(autoincrement())
   nombre        String       @db.VarChar(100)
   ubicacion     String       @db.VarChar(200)
-  responsableId String // CORREGIDO: Cambiado a String para relación con User
-  responsable   User         @relation("ResponsableBodega", fields: [responsableId], references: [id]) // CORREGIDO: Relación con User
+  responsableId String
+  responsable   User         @relation("ResponsableBodega", fields: [responsableId], references: [id])
   inventario    Inventario[]
+  isActive      Boolean      @default(true)
+  deletedAt     DateTime?
 
   @@map("bodegas")
 }
@@ -105,6 +110,7 @@ model Categoria {
   id         Int        @id @default(autoincrement())
   nombre     String     @db.VarChar(100)
   materiales Material[]
+  deletedAt  DateTime?
 
   @@map("categorias")
 }
@@ -117,6 +123,7 @@ model Material {
   categoria      Categoria        @relation(fields: [categoriaId], references: [id])
   inventario     Inventario[]
   detalleRequisa DetalleRequisa[]
+  deletedAt      DateTime?
 
   @@map("materiales")
 }
@@ -129,6 +136,7 @@ model Inventario {
   bodega       Bodega       @relation(fields: [bodegaId], references: [id])
   material     Material     @relation(fields: [materialId], references: [id])
   movimientos  Movimiento[]
+  deletedAt    DateTime?
 
   @@unique([bodegaId, materialId])
   @@map("inventario")
@@ -137,13 +145,14 @@ model Inventario {
 model Movimiento {
   id            Int            @id @default(autoincrement())
   inventarioId  Int
-  tipo          MovimientoTipo // CORREGIDO: Usar enum en lugar de string
+  tipo          MovimientoTipo
   cantidad      Int
   fecha         DateTime       @default(now())
-  usuarioId     String // CORREGIDO: Cambiado a String para relación con User
+  usuarioId     String
   observaciones String?
   inventario    Inventario     @relation(fields: [inventarioId], references: [id])
-  usuario       User           @relation(fields: [usuarioId], references: [id]) // CORREGIDO: Relación con User
+  usuario       User           @relation(fields: [usuarioId], references: [id])
+  deletedAt     DateTime?
 
   @@map("movimientos")
 }
@@ -151,12 +160,13 @@ model Movimiento {
 model Requisa {
   id            Int              @id @default(autoincrement())
   proyecto      String           @db.VarChar(200)
-  solicitanteId String // CORREGIDO: Cambiado a String para relación con User
+  solicitanteId String
   fecha         DateTime         @default(now())
-  estado        RequisaEstado    @default(pendiente) // CORREGIDO: Usar enum
+  estado        RequisaEstado    @default(pendiente)
   destino       String?
-  solicitante   User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id]) // CORREGIDO: Relación con User
+  solicitante   User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id])
   detalles      DetalleRequisa[]
+  deletedAt     DateTime?
 
   @@map("requisas")
 }
@@ -169,6 +179,7 @@ model DetalleRequisa {
   descripcion String?
   requisa     Requisa  @relation(fields: [requisaId], references: [id])
   material    Material @relation(fields: [materialId], references: [id])
+  deletedAt   DateTime?
 
   @@map("detalle_requisas")
 }
