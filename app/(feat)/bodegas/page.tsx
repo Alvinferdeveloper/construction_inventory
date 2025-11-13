@@ -1,13 +1,16 @@
 import { Warehouse, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import BodegasTable from "./components/bodegas-table"
-import getBodegas from "@/app/lib/queries/bodegas"
+import { getBodegas } from "@/app/lib/queries/bodegas"
 import CreateBodegaModal from "@/app/(feat)/bodegas/components/create-bodega-modal"
 import { getBodegueros } from "@/app/lib/queries/bodegueros"
+import Paginate from "@/app/(feat)/components/shared/Pagination"
+import { getBodegasPages } from "@/app/lib/queries/bodegas"
 
-export default async function BodegasPage() {
-    const bodegas = await getBodegas()
+export default async function BodegasPage({ searchParams }: { searchParams: Promise<{ page: string }> }) {
     const bodegueros = await getBodegueros()
+    const totalPages = await getBodegasPages()
+    const params = await searchParams;
     return (
         <div className="min-h-screen bg-background p-8">
             <div className="max-w-7xl mx-auto">
@@ -26,7 +29,8 @@ export default async function BodegasPage() {
                         </Button>
                     </CreateBodegaModal>
                 </div>
-                <BodegasTable bodegas={bodegas} />
+                <BodegasTable currentPage={Number(params.page) || 1} />
+                <Paginate totalPages={totalPages} />
             </div>
         </div>
     )

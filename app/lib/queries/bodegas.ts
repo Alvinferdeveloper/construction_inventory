@@ -1,5 +1,8 @@
 import prisma from "@/app/lib/prisma"
-export default async function getBodegas() {
+
+const MAX_ITEMS_PER_PAGE = 7
+
+export async function getBodegas(page: number) {
     const bodegas = await prisma.bodega.findMany({
         select: {
             id: true,
@@ -16,6 +19,17 @@ export default async function getBodegas() {
         where: {
             deletedAt: null,
         },
+        take: MAX_ITEMS_PER_PAGE,
+        skip: (page - 1) * MAX_ITEMS_PER_PAGE,
     });
     return bodegas
+}
+
+export async function getBodegasPages() {
+    const bodegasCount = await prisma.bodega.count({
+        where: {
+            deletedAt: null,
+        },
+    });
+    return Math.ceil(bodegasCount / MAX_ITEMS_PER_PAGE)
 }

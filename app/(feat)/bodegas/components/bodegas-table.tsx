@@ -1,29 +1,16 @@
-"use client"
-
-import { Pencil, Trash2, Package } from "lucide-react"
+import { Pencil, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
-import { deleteBodega } from "@/app/lib/actions/bodegas";
-import { DeleteConfirmationModal } from "@/app/(feat)/components/shared/delete-confirmation-modal";
-
-export interface Bodega {
-    id: number
-    nombre: string
-    ubicacion: string
-    responsable: {
-        id: string
-        name: string
-        email: string
-    }
-}
+import DeleteBodega from "@/app/(feat)/bodegas/components/buttons/DeleteBodega"
+import { getBodegas } from "@/app/lib/queries/bodegas"
 
 interface BodegasTableProps {
-    bodegas: Bodega[]
+    currentPage: number
 }
 
-export default function BodegasTable({ bodegas }: BodegasTableProps) {
+export default async function BodegasTable({ currentPage }: BodegasTableProps) {
+    const bodegas = await getBodegas(currentPage)
     const getAvatarColor = (name: string) => {
         const colors = [
             "bg-blue-100 text-blue-700",
@@ -98,20 +85,7 @@ export default function BodegasTable({ bodegas }: BodegasTableProps) {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </Button>
-                                        <DeleteConfirmationModal
-                                            title="Eliminar Bodega"
-                                            description={`¿Estás seguro que deseas eliminar la bodega "${bodega.nombre}"?`}
-                                            onConfirm={() => deleteBodega(bodega.id)}
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 cursor-pointer w-8 p-0 hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
-                                                title="Eliminar bodega"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </DeleteConfirmationModal>
+                                        <DeleteBodega bodegaId={bodega.id} />
                                     </div>
                                 </TableCell>
                             </TableRow>
