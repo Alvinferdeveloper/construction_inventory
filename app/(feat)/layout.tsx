@@ -40,11 +40,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <Separator className="my-4" />
 
-          <div className="px-4 py-3 flex items-center gap-2 text-sm font-medium text-foreground/60">
-            <HelpCircle className="w-4 h-4" />
-            <span>Soporte</span>
+          <div className="flex bottom-8 fixed w-[230px] flex-col gap-2">
+            <div className="px-4 py-3 flex items-center gap-2 text-sm font-medium text-foreground/60">
+              <HelpCircle className="w-4 h-4" />
+              <span>Soporte</span>
+            </div>
+            <SignOutButton />
           </div>
-          <SignOutButton />
         </nav>
       </aside>
 
