@@ -6,123 +6,90 @@ import {
   FileText,
   BarChart3,
   Truck,
-  LogOut,
 } from "lucide-react"
-export const configByRole: {
+export const menuByRole: {
   [key: string]: {
-    headerBg: string
-    sidebarBg: string
-    mainBg: string
-    accentColor: string
     menu: {
       name: string
       href: string
+      icon: React.ReactNode
     }[]
-    iconos: { [key: string]: React.ReactNode }
   }
 } = {
   ADMINISTRADOR: {
-    headerBg: "bg-red-600",
-    sidebarBg: "bg-gray-900",
-    mainBg: "bg-gray-50",
-    accentColor: "text-red-600",
     menu: [{
       name: "Usuarios",
       href: "/usuarios",
+      icon: <Users size={20} />,
     }, {
       name: "Bodegas",
       href: "/bodegas",
+      icon: <Warehouse size={20} />,
     }, {
       name: "Materiales",
       href: "/materiales",
+      icon: <Package size={20} />,
     }, {
       name: "Inventario",
       href: "/inventario",
+      icon: <LayoutDashboard size={20} />,
     }, {
       name: "Movimientos",
       href: "/movimientos",
+      icon: <Truck size={20} />,
     }, {
       name: "Reportes",
       href: "/reportes",
+      icon: <FileText size={20} />,
     }],
-    iconos: {
-      Usuarios: <Users size={20} />,
-      Bodegas: <Warehouse size={20} />,
-      Materiales: <Package size={20} />,
-      Inventario: <LayoutDashboard size={20} />,
-      Movimientos: <Truck size={20} />,
-      Reportes: <FileText size={20} />,
-      "Cerrar sesión": <LogOut size={20} />,
-    },
   },
   BODEGUERO: {
-    headerBg: "bg-blue-600",
-    sidebarBg: "bg-slate-700",
-    mainBg: "bg-blue-50",
-    accentColor: "text-blue-600",
     menu: [{
       name: "Entradas",
       href: "/entradas",
+      icon: <Truck size={20} />,
     }, {
       name: "Salidas",
       href: "/salidas",
+      icon: <Package size={20} />,
     }, {
       name: "Inventario",
       href: "/inventario",
+      icon: <LayoutDashboard size={20} />,
     }, {
       name: "Requisas",
       href: "/requisas",
+      icon: <FileText size={20} />,
     }],
-    iconos: {
-      Entradas: <Truck size={20} />,
-      Salidas: <Package size={20} />,
-      Inventario: <LayoutDashboard size={20} />,
-      Requisas: <FileText size={20} />,
-      "Cerrar sesión": <LogOut size={20} />,
-    },
   },
   SUPERVISOR: {
-    headerBg: "bg-green-600",
-    sidebarBg: "bg-white",
-    mainBg: "bg-green-50",
-    accentColor: "text-green-600",
     menu: [{
       name: "Solicitar Materiales",
       href: "/solicitar-materiales",
+      icon: <Package size={20} />,
     }, {
       name: "Estado de Requisas",
       href: "/estado-de-requisas",
+      icon: <FileText size={20} />,
     }],
-    iconos: {
-      "Solicitar Materiales": <Package size={20} />,
-      "Estado de Requisas": <FileText size={20} />,
-      "Cerrar sesión": <LogOut size={20} />,
-    },
   },
   JEFE: {
-    headerBg: "bg-cyan-600",
-    sidebarBg: "bg-cyan-100",
-    mainBg: "bg-cyan-50",
-    accentColor: "text-cyan-600",
     menu: [{
       name: "Bodegas",
       href: "/bodegas",
+      icon: <Warehouse size={20} />,
     }, {
       name: "Stock General",
       href: "/stock-general",
+      icon: <BarChart3 size={20} />,
     }, {
       name: "Aprobaciones",
       href: "/aprobaciones",
+      icon: <FileText size={20} />,
     }, {
       name: "Reportes",
       href: "/reportes",
+      icon: <FileText size={20} />,
     }],
-    iconos: {
-      Bodegas: <Warehouse size={20} />,
-      "Stock General": <BarChart3 size={20} />,
-      Aprobaciones: <FileText size={20} />,
-      Reportes: <FileText size={20} />,
-      "Cerrar sesión": <LogOut size={20} />,
-    },
   },
 }
