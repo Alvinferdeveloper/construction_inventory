@@ -34,3 +34,20 @@ export async function createBodega(prevState: CreateBodegaState, data: BodegaFor
         }
     }
 }
+
+export async function deleteBodega(bodegaId: number) {
+    try {
+        await prisma.bodega.update({
+            where: {
+                id: bodegaId
+            },
+            data: {
+                deletedAt: new Date()
+            }
+        })
+        revalidatePath("/bodegas")
+    } catch (error) {
+        console.error("Error al eliminar la bodega:", error)
+        throw new Error("No se pudo eliminar la bodega.")
+    }
+}

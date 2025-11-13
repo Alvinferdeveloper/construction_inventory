@@ -13,6 +13,9 @@ export default async function getBodegas() {
                 },
             },
         },
+        where: {
+            deletedAt: null,
+        },
     });
     return bodegas
 }

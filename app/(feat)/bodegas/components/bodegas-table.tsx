@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
+import { deleteBodega } from "@/app/lib/actions/bodegas";
+import { DeleteConfirmationModal } from "@/app/(feat)/components/shared/delete-confirmation-modal";
+
 export interface Bodega {
     id: number
     nombre: string
@@ -95,14 +98,20 @@ export default function BodegasTable({ bodegas }: BodegasTableProps) {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 cursor-pointer w-8 p-0 hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
-                                            title="Eliminar bodega"
+                                        <DeleteConfirmationModal
+                                            title="Eliminar Bodega"
+                                            description={`¿Estás seguro que deseas eliminar la bodega "${bodega.nombre}"?`}
+                                            onConfirm={() => deleteBodega(bodega.id)}
                                         >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 cursor-pointer w-8 p-0 hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
+                                                title="Eliminar bodega"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </DeleteConfirmationModal>
                                     </div>
                                 </TableCell>
                             </TableRow>
