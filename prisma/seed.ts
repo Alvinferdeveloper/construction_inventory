@@ -40,8 +40,7 @@ async function main() {
       password: 'password123',
       phone: '123456789',
       direction: '123 Main St',
-      identification: '123456789',
-      estado: true,
+      identification: '444-444444-4444P',
       rolId: userData.rolId,
     });
     const user = await prisma.user.findUnique({ where: { email: userData.email } });
