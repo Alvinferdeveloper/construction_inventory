@@ -1,6 +1,6 @@
 "use client"
 
-import { startTransition, useState, type ReactNode, useEffect } from "react"
+import { useTransition, useState, type ReactNode, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Warehouse } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import SubmitButton from "@/app/(feat)/components/shared/SubmitButton"
 import { useActionState } from "react"
 
 
@@ -33,7 +34,7 @@ interface BodegaFormModalProps {
 const bodegaSchema = z.object({
     nombre: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
     ubicacion: z.string().min(3, { message: "La ubicación debe tener al menos 3 caracteres" }),
-    responsable: z.string({ message: "Debes seleccionar un responsable" }),
+    responsable: z.string().min(1, { message: "Debes seleccionar un responsable" }),
     id: z.number().optional(),
 })
 
@@ -57,7 +58,8 @@ export default function BodegaFormModal({
     submitText
 }: BodegaFormModalProps) {
     const [open, setOpen] = useState(false);
-    const [error, setError] = useState("")
+    const [error, setError] = useState("");
+    const [pending, startTransition] = useTransition();
     const {
         register,
         handleSubmit,
@@ -177,7 +179,7 @@ export default function BodegaFormModal({
                         <Button type="button" variant="outline" className="cursor-pointer" onClick={() => handleOpenChange(false)}>
                             Cancelar
                         </Button>
-                        <Button type="submit" className="cursor-pointer">{submitText}</Button>
+                        <SubmitButton text={submitText} pending={pending} />
                     </div>
                 </form>
             </DialogContent>
