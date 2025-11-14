@@ -15,7 +15,7 @@ interface BodegasTableProps {
 export default async function BodegasTable({ currentPage }: BodegasTableProps) {
     const bodegas = await getBodegas(currentPage)
     const bodegueros = await getBodegueros()
-    
+
     const getAvatarColor = (name: string) => {
         const colors = [
             "bg-blue-100 text-blue-700",
@@ -95,12 +95,12 @@ export default async function BodegasTable({ currentPage }: BodegasTableProps) {
                                                 responsableId: bodega.responsable.id
                                             }}
                                         >
-                                            <span
-                                                className="h-8 flex items-center justify-center rounded-md cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
+                                            <Button
+                                                className="h-8  bg-transparent flex items-center justify-center rounded-md cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
                                                 title="Editar bodega"
                                             >
                                                 <Pencil className="w-4 h-4" />
-                                            </span>
+                                            </Button>
                                         </BodegaFormModal>
 
                                         <DeleteBodega bodegaId={bodega.id} />
