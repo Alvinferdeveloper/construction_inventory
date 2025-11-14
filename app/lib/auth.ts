@@ -13,7 +13,7 @@ export const auth = betterAuth({
             identification: { type: "string", required: true, input: true },
             estado: { type: "boolean", required: true, input: true },
             rolId: { type: "number", required: true, input: true },
-            rol: { type: "string", required: true, input: false },
+            rol: { type: "string", required: false, input: false },
         }
     },
     emailAndPassword: {
