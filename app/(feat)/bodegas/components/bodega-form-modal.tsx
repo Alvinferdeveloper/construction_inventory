@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition, useState, type ReactNode, useEffect } from "react"
+import { startTransition, useState, type ReactNode, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -59,7 +59,6 @@ export default function BodegaFormModal({
 }: BodegaFormModalProps) {
     const [open, setOpen] = useState(false);
     const [error, setError] = useState("");
-    const [pending, startTransition] = useTransition();
     const {
         register,
         handleSubmit,
@@ -74,7 +73,7 @@ export default function BodegaFormModal({
         } : {}
     })
 
-    const [state, formAction] = useActionState(action, INITIAL_VALUES);
+    const [state, formAction, isPending] = useActionState(action, INITIAL_VALUES);
 
     useEffect(() => {
         if (state.success) {
@@ -179,7 +178,7 @@ export default function BodegaFormModal({
                         <Button type="button" variant="outline" className="cursor-pointer" onClick={() => handleOpenChange(false)}>
                             Cancelar
                         </Button>
-                        <SubmitButton text={submitText} pending={pending} />
+                        <SubmitButton text={submitText} pending={isPending} />
                     </div>
                 </form>
             </DialogContent>
