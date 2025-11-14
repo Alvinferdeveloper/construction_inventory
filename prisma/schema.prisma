@@ -11,8 +11,8 @@ datasource db {
 }
 
 model Rol {
-  id          Int      @id @default(autoincrement())
-  nombre      String   @db.VarChar(100)
+  id          Int       @id @default(autoincrement())
+  nombre      String    @db.VarChar(100)
   descripcion String?
   users       User[]
   deletedAt   DateTime?
@@ -21,20 +21,21 @@ model Rol {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  name           String    @db.VarChar(150)
-  email          String    @unique(map: "user_email_unique")
-  password       String?   @db.VarChar(255)
-  phone          String?   @db.VarChar(20)
-  direction      String?   @db.Text
-  identification String?   @db.VarChar(20)
-  emailVerified  Boolean   @default(false)
-  image          String?   @db.Text
-  estado         Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  isActive       Boolean   @default(true)
-  deletedAt      DateTime?
+  id                String    @id @default(cuid())
+  name              String    @db.VarChar(150)
+  email             String    @unique(map: "user_email_unique")
+  password          String?   @db.VarChar(255)
+  phone             String?   @db.VarChar(20)
+  direction         String?   @db.Text
+  identification    String?   @db.VarChar(20)
+  emailVerified     Boolean   @default(false)
+  image             String?   @db.Text
+  estado            Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  isActive          Boolean   @default(true)
+  isDefaultPassword Boolean   @default(true)
+  deletedAt         DateTime?
 
   rolId       Int
   rol         Rol          @relation(fields: [rolId], references: [id])
@@ -172,13 +173,13 @@ model Requisa {
 }
 
 model DetalleRequisa {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   requisaId   Int
   materialId  Int
   cantidad    Int
   descripcion String?
-  requisa     Requisa  @relation(fields: [requisaId], references: [id])
-  material    Material @relation(fields: [materialId], references: [id])
+  requisa     Requisa   @relation(fields: [requisaId], references: [id])
+  material    Material  @relation(fields: [materialId], references: [id])
   deletedAt   DateTime?
 
   @@map("detalle_requisas")
