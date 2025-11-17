@@ -56,3 +56,33 @@ export async function getGeneralInventory() {
     });
     return materials;
 }
+
+export async function getInventoryForBodeguero(userId: string) {
+    const bodegas = await prisma.bodega.findMany({
+        where: {
+            responsableId: userId,
+            deletedAt: null,
+        },
+        include: {
+            inventario: {
+                where: { deletedAt: null },
+                include: {
+                    material: {
+                        include: {
+                            categoria: true,
+                        }
+                    }
+                },
+                orderBy: {
+                    material: {
+                        nombre: 'asc'
+                    }
+                }
+            }
+        },
+        orderBy: {
+            nombre: 'asc'
+        }
+    });
+    return bodegas;
+}
