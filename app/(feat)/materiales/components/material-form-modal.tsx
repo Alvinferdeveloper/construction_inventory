@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode, useTransition } from "react"
+import { useState, type ReactNode, startTransition, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Package } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useActionState } from "react"
+import SubmitButton from "@/app/(feat)/components/shared/SubmitButton"
 
 export interface Material {
   id: number
@@ -35,9 +36,6 @@ interface MaterialActionData {
   categoriaId: number
 }
 
-// Tipo flexible que acepta tanto createMaterial como updateMaterial
-// Acepta cualquier función que tenga una firma compatible con las acciones
-// Esto permite usar tanto createMaterial (sin id) como updateMaterial (con id requerido)
 type MaterialAction = (
   prevState: CreateMaterialState,
   data: { nombre: string; unidad_medida: string; categoriaId: number } & ({ id?: number } | { id: number })
@@ -53,7 +51,6 @@ interface MaterialFormModalProps {
   submitText: string
 }
 
-// Unidades de medida comunes en construcción
 const UNIDADES_MEDIDA = [
   { value: "kg", label: "Kilogramos (kg)" },
   { value: "g", label: "Gramos (g)" },
@@ -75,7 +72,7 @@ const UNIDADES_MEDIDA = [
 const materialSchema = z.object({
   nombre: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
   unidad_medida: z.string().min(1, { message: "Debes seleccionar una unidad de medida" }),
-    categoria: z.string().min(1,{ message: "Debes seleccionar una categoría" }),
+  categoria: z.string().min(1, { message: "Debes seleccionar una categoría" }),
   id: z.number().optional(),
 })
 
@@ -99,7 +96,7 @@ export default function MaterialFormModal({
   submitText,
 }: MaterialFormModalProps) {
   const [open, setOpen] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -114,7 +111,7 @@ export default function MaterialFormModal({
       : { nombre: "", unidad_medida: "", categoria: "" },
   })
 
-  const [state, formAction] = useActionState<CreateMaterialState, MaterialActionData | (MaterialActionData & { id: number })>(
+  const [state, formAction, isPending] = useActionState<CreateMaterialState, MaterialActionData | (MaterialActionData & { id: number })>(
     action as MaterialAction,
     INITIAL_VALUES
   )
@@ -127,39 +124,43 @@ export default function MaterialFormModal({
     )
   }
 
+  useEffect(() => {
+    if (state.success) {
+      setOpen(false)
+    } else {
+      setError(state.message)
+    }
+  }, [state])
+
   const onSubmit = (data: MaterialForm) => {
     startTransition(() => {
       const dataToSubmit: MaterialActionData | (MaterialActionData & { id: number }) = initialData?.id
         ? {
-            id: initialData.id,
-            nombre: data.nombre,
-            unidad_medida: data.unidad_medida,
-            categoriaId: parseInt(data.categoria),
-          }
+          id: initialData.id,
+          nombre: data.nombre,
+          unidad_medida: data.unidad_medida,
+          categoriaId: parseInt(data.categoria),
+        }
         : {
-            nombre: data.nombre,
-            unidad_medida: data.unidad_medida,
-            categoriaId: parseInt(data.categoria),
-          }
+          nombre: data.nombre,
+          unidad_medida: data.unidad_medida,
+          categoriaId: parseInt(data.categoria),
+        }
       formAction(dataToSubmit)
     })
   }
 
-  // El modal se cierra automáticamente cuando hay éxito (estado derivado)
-  const isOpen = open && !state.success
-
-  // Mostrar el error directamente del estado, sin necesidad de estado local separado
-  const displayError = state.success ? "" : state.message
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
     if (!isOpen) {
       resetForm()
+      setError("")
     }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -232,9 +233,9 @@ export default function MaterialFormModal({
             {errors.categoria && <p className="text-red-500 text-xs">{errors.categoria.message}</p>}
           </div>
 
-          {displayError && (
+          {error && (
             <div className="mt-1 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {displayError}
+              {error}
             </div>
           )}
 
@@ -247,9 +248,7 @@ export default function MaterialFormModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer" disabled={isPending}>
-              {isPending ? "Guardando..." : submitText}
-            </Button>
+            <SubmitButton text={submitText} pending={isPending} />
           </div>
         </form>
       </DialogContent>
