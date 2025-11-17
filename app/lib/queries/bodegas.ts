@@ -33,3 +33,16 @@ export async function getBodegasPages() {
     });
     return Math.ceil(bodegasCount / MAX_ITEMS_PER_PAGE)
 }
+
+export async function getAllBodegas() {
+    const bodegas = await prisma.bodega.findMany({
+        where: {
+            deletedAt: null,
+        },
+        select: {
+            id: true,
+            nombre: true,
+        }
+    });
+    return bodegas;
+}
