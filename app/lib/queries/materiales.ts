@@ -51,3 +51,35 @@ export async function getCategorias() {
     return []
   }
 }
+
+export async function getUnassignedMaterials(bodegaId: number) {
+  const assignedMaterialIds = await prisma.inventario.findMany({
+    where: {
+      bodegaId: bodegaId,
+      deletedAt: null,
+    },
+    select: {
+      materialId: true,
+    },
+  });
+
+  const idsToExclude = assignedMaterialIds.map(item => item.materialId);
+
+  const unassignedMaterials = await prisma.material.findMany({
+    where: {
+      id: {
+        notIn: idsToExclude,
+      },
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      nombre: true,
+    },
+    orderBy: {
+      nombre: 'asc',
+    }
+  });
+
+  return unassignedMaterials;
+}

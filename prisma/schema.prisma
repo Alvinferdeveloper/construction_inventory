@@ -135,6 +135,8 @@ model Inventario {
   bodegaId     Int
   materialId   Int
   stock_actual Int          @default(0)
+  minStock     Int          @default(0)
+  maxStock     Int?
   bodega       Bodega       @relation(fields: [bodegaId], references: [id])
   material     Material     @relation(fields: [materialId], references: [id])
   movimientos  Movimiento[]
@@ -152,6 +154,7 @@ model Movimiento {
   fecha         DateTime       @default(now())
   usuarioId     String
   observaciones String?
+  reason        String?
   inventario    Inventario     @relation(fields: [inventarioId], references: [id])
   usuario       User           @relation(fields: [usuarioId], references: [id])
   deletedAt     DateTime?
@@ -160,15 +163,16 @@ model Movimiento {
 }
 
 model Requisa {
-  id            Int              @id @default(autoincrement())
-  proyecto      String           @db.VarChar(200)
-  solicitanteId String
-  fecha         DateTime         @default(now())
-  estado        RequisaEstado    @default(pendiente)
-  destino       String?
-  solicitante   User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id])
-  detalles      DetalleRequisa[]
-  deletedAt     DateTime?
+  id               Int              @id @default(autoincrement())
+  proyecto         String           @db.VarChar(200)
+  solicitanteId    String
+  fecha            DateTime         @default(now())
+  estado           RequisaEstado    @default(pendiente)
+  destino          String?
+  rejectionComments String?
+  solicitante      User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id])
+  detalles         DetalleRequisa[]
+  deletedAt        DateTime?
 
   @@map("requisas")
 }
