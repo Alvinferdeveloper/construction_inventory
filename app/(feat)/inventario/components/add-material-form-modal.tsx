@@ -21,9 +21,19 @@ interface AddMaterialFormModalProps {
 
 const addMaterialSchema = z.object({
     bodegaId: z.number(),
-    materialId: z.number().min(1, { message: "Debe seleccionar un material." }),
+    materialId: z.coerce.number().min(1, { message: "Debe seleccionar un material." }),
     cantidad: z.coerce.number({ message: "La cantidad debe ser un número." }).int().positive({ message: "La cantidad debe ser un número positivo." }),
     observaciones: z.string().optional(),
+    minStock: z.coerce.number({ message: "El stock mínimo debe ser un número." }).int().nonnegative().optional(),
+    maxStock: z.coerce.number({ message: "El stock máximo debe ser un número." }).int().positive().optional(),
+}).refine(data => {
+    if (data.minStock !== undefined && data.maxStock !== undefined) {
+        return data.minStock <= data.maxStock;
+    }
+    return true;
+}, {
+    message: "El stock mínimo no puede ser mayor al stock máximo.",
+    path: ["minStock"],
 });
 
 export type AddMaterialForm = z.output<typeof addMaterialSchema>;
@@ -85,10 +95,7 @@ export default function AddMaterialFormModal({ bodegaId, unassignedMaterials, ch
                             name="materialId"
                             control={control}
                             render={({ field }) => (
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value !== undefined ? String(field.value) : undefined}
-                                >
+                                <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleccionar material" />
                                     </SelectTrigger>
@@ -111,9 +118,32 @@ export default function AddMaterialFormModal({ bodegaId, unassignedMaterials, ch
                             id="cantidad"
                             type="number"
                             placeholder="Ej: 50"
-                            {...register("cantidad", { valueAsNumber: true })}
+                            {...register("cantidad")}
                         />
                         {errors.cantidad && <p className="text-red-500 text-xs">{errors.cantidad.message}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="minStock">Stock Mínimo</Label>
+                            <Input
+                                id="minStock"
+                                type="number"
+                                placeholder="Ej: 10"
+                                {...register("minStock")}
+                            />
+                            {errors.minStock && <p className="text-red-500 text-xs">{errors.minStock.message}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="maxStock">Stock Máximo</Label>
+                            <Input
+                                id="maxStock"
+                                type="number"
+                                placeholder="Ej: 200"
+                                {...register("maxStock")}
+                            />
+                            {errors.maxStock && <p className="text-red-500 text-xs">{errors.maxStock.message}</p>}
+                        </div>
                     </div>
 
                     <div className="space-y-2">

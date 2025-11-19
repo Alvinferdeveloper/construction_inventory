@@ -54,32 +54,44 @@ export default async function BodegueroInventoryView({ userId }: BodegueroInvent
                                         <TableRow>
                                             <TableHead>Material</TableHead>
                                             <TableHead>Categoría</TableHead>
-                                            <TableHead>Unidad</TableHead>
                                             <TableHead className="text-right">Stock Actual</TableHead>
+                                            <TableHead className="text-right">Stock Mín.</TableHead>
+                                            <TableHead className="text-right">Stock Máx.</TableHead>
                                             <TableHead className="text-right">Acciones</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {bodega.inventario.map(item => (
-                                            <TableRow key={item.id}>
-                                                <TableCell className="font-medium">{item.material.nombre}</TableCell>
-                                                <TableCell>{item.material.categoria.nombre}</TableCell>
-                                                <TableCell>{item.material.unidad_medida}</TableCell>
-                                                <TableCell className="font-bold text-right">{item.stock_actual}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <EntradaFormModal inventarioId={item.id} materialNombre={item.material.nombre}>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 cursor-pointer w-8 p-0 hover:bg-green-100 hover:text-green-700 text-muted-foreground"
-                                                            title="Registrar Entrada"
-                                                        >
-                                                            <LogIn className="w-4 h-4" />
-                                                        </Button>
-                                                    </EntradaFormModal>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                        {bodega.inventario.map(item => {
+                                            const isBelowMin = item.stock_actual < item.minStock;
+                                            const isAboveMax = item.maxStock !== null && item.stock_actual > item.maxStock;
+                                            let stockColor = "text-foreground";
+                                            if (isBelowMin) stockColor = "text-red-500";
+                                            if (isAboveMax) stockColor = "text-amber-500";
+
+                                            return (
+                                                <TableRow key={item.id}>
+                                                    <TableCell className="font-medium">{item.material.nombre}</TableCell>
+                                                    <TableCell>{item.material.categoria.nombre}</TableCell>
+                                                    <TableCell className={`font-bold text-right ${stockColor}`}>
+                                                        {item.stock_actual}
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-muted-foreground">{item.minStock}</TableCell>
+                                                    <TableCell className="text-right text-muted-foreground">{item.maxStock ?? 'N/A'}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <EntradaFormModal inventarioId={item.id} materialNombre={item.material.nombre}>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-8 cursor-pointer w-8 p-0 hover:bg-green-100 hover:text-green-700 text-muted-foreground"
+                                                                title="Registrar Entrada"
+                                                            >
+                                                                <LogIn className="w-4 h-4" />
+                                                            </Button>
+                                                        </EntradaFormModal>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
                                     </TableBody>
                                 </Table>
                             )}

@@ -85,6 +85,16 @@ const AddMaterialSchema = z.object({
     materialId: z.coerce.number(),
     cantidad: z.coerce.number().int().positive({ message: "La cantidad debe ser mayor a 0." }),
     observaciones: z.string().optional(),
+    minStock: z.coerce.number().int().nonnegative().optional(),
+    maxStock: z.coerce.number().int().positive().optional(),
+}).refine(data => {
+    if (data.minStock !== undefined && data.maxStock !== undefined) {
+        return data.minStock <= data.maxStock;
+    }
+    return true;
+}, {
+    message: "El stock mínimo no puede ser mayor al stock máximo.",
+    path: ["minStock"],
 });
 
 export async function addMaterialToBodega(prevState: EntradaFormState, data: AddMaterialForm): Promise<EntradaFormState> {
@@ -102,10 +112,11 @@ export async function addMaterialToBodega(prevState: EntradaFormState, data: Add
         return { success: false, message: "Error de validación." };
     }
 
-    const { bodegaId, materialId, cantidad, observaciones } = validatedFields.data;
+    const { bodegaId, materialId, cantidad, observaciones, minStock, maxStock } = validatedFields.data;
 
     try {
         await prisma.$transaction(async (tx) => {
+            // Check if the inventory item already exists
             const existingInventory = await tx.inventario.findUnique({
                 where: {
                     bodegaId_materialId: {
@@ -119,14 +130,18 @@ export async function addMaterialToBodega(prevState: EntradaFormState, data: Add
                 throw new Error("Este material ya existe en la bodega. Use la opción 'Registrar Entrada' para aumentar el stock.");
             }
 
+            // 1. Create the new inventory record
             const newInventario = await tx.inventario.create({
                 data: {
                     bodegaId,
                     materialId,
                     stock_actual: cantidad,
+                    minStock: minStock,
+                    maxStock: maxStock,
                 },
             });
 
+            // 2. Create the initial movement record
             await tx.movimiento.create({
                 data: {
                     inventarioId: newInventario.id,

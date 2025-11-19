@@ -56,37 +56,44 @@ export default async function InventoryTable({ bodegaId }: InventoryTableProps) 
                                         {category}
                                     </TableHead>
                                 </TableRow>
-                                <TableRow className="border-b border-border bg-muted/60 hover:bg-muted/60">
-                                    <TableHead className="font-semibold text-foreground py-3">Material</TableHead>
-                                    <TableHead className="font-semibold text-foreground py-3">Unidad</TableHead>
-                                    <TableHead className="font-semibold text-foreground text-right py-3">Stock Actual</TableHead>
-                                    <TableHead className="font-semibold text-foreground text-right py-3">Acciones</TableHead>
+                                <TableRow className="border-b border-border bg-muted hover:bg-muted">
+                                    <TableHead className="font-semibold text-foreground">Material</TableHead>
+                                    <TableHead className="font-semibold text-foreground text-right">Stock Actual</TableHead>
+                                    <TableHead className="font-semibold text-foreground text-right">Stock Mín.</TableHead>
+                                    <TableHead className="font-semibold text-foreground text-right">Stock Máx.</TableHead>
+                                    <TableHead className="font-semibold text-foreground text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {items.map((item) => (
-                                    <TableRow key={item.id} className="border-b border-border/50 hover:bg-primary/5 transition-colors duration-150">
-                                        <TableCell className="font-medium text-foreground py-3.5">{item.material.nombre}</TableCell>
-                                        <TableCell className="text-muted-foreground py-3.5">{item.material.unidad_medida}</TableCell>
-                                        <TableCell className="text-foreground font-semibold text-right py-3.5">
-                                            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                                                {item.stock_actual}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-right py-3.5">
-                                            <div className="flex justify-end">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-9 cursor-pointer hover:bg-blue-500/10 hover:text-blue-500 px-3 text-muted-foreground transition-colors duration-150"
-                                                    title="Generar Requisa"
-                                                >
-                                                    <FileText className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {items.map((item) => {
+                                    const isBelowMin = item.stock_actual < item.minStock;
+                                    const isAboveMax = item.maxStock !== null && item.stock_actual > item.maxStock;
+                                    let stockColor = "text-foreground";
+                                    if (isBelowMin) stockColor = "text-red-500";
+                                    if (isAboveMax) stockColor = "text-amber-500";
+
+                                    return (
+                                        <TableRow key={item.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                                            <TableCell className="font-medium text-foreground">{item.material.nombre}</TableCell>
+                                            <TableCell className={`text-foreground font-bold text-right ${stockColor}`}>{item.stock_actual}</TableCell>
+                                            <TableCell className="text-muted-foreground text-right">{item.minStock}</TableCell>
+                                            <TableCell className="text-muted-foreground text-right">{item.maxStock ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
+                                                        title="Generar Requisa"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                    </Button>
+                                                    {/* Placeholder for future actions */}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </React.Fragment>
                     ))}

@@ -9,6 +9,8 @@ export async function getInventoryByBodega(bodegaId: number) {
         select: {
             id: true,
             stock_actual: true,
+            minStock: true,
+            maxStock: true,
             material: {
                 select: {
                     id: true,
@@ -66,10 +68,14 @@ export async function getInventoryForBodeguero(userId: string) {
         include: {
             inventario: {
                 where: { deletedAt: null },
-                include: {
+                select: {
+                    id: true,
+                    stock_actual: true,
+                    minStock: true,
+                    maxStock: true,
                     material: {
                         include: {
-                            categoria: true,
+                            categoria: true
                         }
                     }
                 },
@@ -84,5 +90,6 @@ export async function getInventoryForBodeguero(userId: string) {
             nombre: 'asc'
         }
     });
+
     return bodegas;
 }
