@@ -57,15 +57,15 @@ export const menuByRole: {
       href: "/inventario",
       icon: <LayoutDashboard size={20} />,
     }, {
-      name: "Requisas",
-      href: "/requisas",
+      name: "Solicitudes de Material",
+      href: "/bodega/asignaciones",
       icon: <FileText size={20} />,
     }],
   },
   SUPERVISOR: {
     menu: [{
       name: "Solicitar Materiales",
-      href: "/solicitar-materiales",
+      href: "/requisas",
       icon: <Package size={20} />,
     }, {
       name: "Estado de Requisas",

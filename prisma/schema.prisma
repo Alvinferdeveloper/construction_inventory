@@ -101,6 +101,7 @@ model Bodega {
   responsableId String
   responsable   User         @relation("ResponsableBodega", fields: [responsableId], references: [id])
   inventario    Inventario[]
+  detalleRequisas  DetalleRequisa[]
   isActive      Boolean      @default(true)
   deletedAt     DateTime?
 
@@ -174,12 +175,15 @@ model Requisa {
 
 model DetalleRequisa {
   id          Int       @id @default(autoincrement())
+  requisa     Requisa  @relation(fields: [requisaId], references: [id])
   requisaId   Int
+  material    Material @relation(fields: [materialId], references: [id])
   materialId  Int
   cantidad    Int
   descripcion String?
-  requisa     Requisa   @relation(fields: [requisaId], references: [id])
-  material    Material  @relation(fields: [materialId], references: [id])
+  bodega      Bodega?  @relation(fields: [bodegaId], references: [id])
+  bodegaId    Int?
+  estado      DetalleRequisaEstado @default(pendiente)
   deletedAt   DateTime?
 
   @@map("detalle_requisas")
@@ -193,7 +197,14 @@ enum MovimientoTipo {
 
 enum RequisaEstado {
   pendiente
+  en_proceso
   aprobada
   rechazada
   completada
+}
+
+enum DetalleRequisaEstado {
+  pendiente
+  aprobado
+  rechazado
 }
