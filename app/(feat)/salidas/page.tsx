@@ -6,12 +6,12 @@ import Paginate from "@/app/(feat)/components/shared/Pagination";
 import { getSalidas } from "@/app/lib/queries/salidas";
 import { headers } from "next/headers";
 
-export default async function SalidasPage({ searchParams }: { searchParams: { page?: string } }) {
+export default async function SalidasPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
     const session = await auth.api.getSession({
         headers: await headers()
     });
     const user = session?.user;
-    const currentPage = Number(searchParams?.page) || 1;
+    const currentPage = Number((await searchParams)?.page) || 1;
 
     const isBodeguero = user?.rol === ROLES.BODEGUERO;
     const userId = isBodeguero ? user.id : undefined;
