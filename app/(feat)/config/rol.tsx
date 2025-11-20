@@ -66,8 +66,8 @@ export const menuByRole: {
       name: "Movimientos",
       icon: <Truck size={20} />,
       subItems: [
-        { name: "Entradas", href: "/movimientos/entradas", icon: <LogIn size={16} /> },
-        { name: "Salidas", href: "/movimientos/salidas", icon: <LogOut size={16} /> }
+        { name: "Entradas", href: "/entradas", icon: <LogIn size={16} /> },
+        { name: "Salidas", href: "/salidas", icon: <LogOut size={16} /> }
       ]
     }, {
       name: "Inventario",
@@ -78,9 +78,9 @@ export const menuByRole: {
       href: "/bodega/asignaciones",
       icon: <FileText size={20} />,
     }, {
-        name: "Reportes",
-        href: "/reportes",
-        icon: <FileText size={20} />,
+      name: "Reportes",
+      href: "/reportes",
+      icon: <FileText size={20} />,
     }],
   },
   SUPERVISOR: {
