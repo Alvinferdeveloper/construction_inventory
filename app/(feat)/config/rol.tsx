@@ -100,6 +100,10 @@ export const menuByRole: {
       name: "Disponibilidad",
       href: "/disponibilidad",
       icon: <Boxes size={20} />,
+    }, {
+      name: "Reportes",
+      href: "/reportes",
+      icon: <FileText size={20} />,
     }],
   },
   JEFE: {

@@ -156,3 +156,49 @@ export async function getRequisitionDetailsForBodeguero({
     return { details, totalPages };
 }
 
+export async function getMaterialUsageByProject(userId: string) {
+    const approvedDetails = await prisma.detalleRequisa.findMany({
+        where: {
+            requisa: {
+                solicitanteId: userId,
+            },
+            estado: 'aprobado',
+        },
+        select: {
+            cantidad: true,
+            requisa: {
+                select: {
+                    proyecto: true,
+                }
+            },
+            material: {
+                select: {
+                    nombre: true,
+                    unidad_medida: true,
+                }
+            }
+        }
+    });
+
+    // Group and aggregate in code
+    const report = approvedDetails.reduce((acc, detail) => {
+        const project = detail.requisa.proyecto;
+        const material = detail.material.nombre;
+
+        if (!acc[project]) {
+            acc[project] = {};
+        }
+        if (!acc[project][material]) {
+            acc[project][material] = {
+                cantidad: 0,
+                unidad: detail.material.unidad_medida
+            };
+        }
+        acc[project][material].cantidad += detail.cantidad;
+
+        return acc;
+    }, {} as Record<string, Record<string, { cantidad: number; unidad: string }>>);
+
+    return report;
+}
+

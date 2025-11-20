@@ -7,16 +7,22 @@ import HistoryTable from "./components/history-table";
 import Paginate from "@/app/(feat)/components/shared/Pagination";
 import { Suspense } from "react";
 import { TableSkeleton } from "@/app/(feat)/components/shared/table-skeleton";
+import HistoryFilters from "./components/HistoryFilters";
+import { getMateriales } from "@/app/lib/queries/materiales";
 
-export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function HistoryPage({ searchParams }: { searchParams: { page?: string; dateFrom?: string; dateTo?: string; materialId?: string; } }) {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
         redirect('/login');
     }
 
-    const currentPage = Number((await searchParams)?.page) || 1;
-    const totalPages = await getReceivedMaterialsHistoryPages(session.user.id);
-    const history = await getReceivedMaterialsHistory(session.user.id, currentPage);
+    const currentPage = Number(searchParams?.page) || 1;
+    const materialId = searchParams?.materialId ? Number(searchParams.materialId) : undefined;
+    const { dateFrom, dateTo } = searchParams;
+
+    const materials = await getMateriales();
+    const totalPages = await getReceivedMaterialsHistoryPages({ userId: session.user.id, dateFrom, dateTo, materialId });
+    const history = await getReceivedMaterialsHistory({ userId: session.user.id, page: currentPage, dateFrom, dateTo, materialId });
 
     return (
         <div className="min-h-screen bg-background p-8">
@@ -30,6 +36,8 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                         </div>
                     </div>
                 </div>
+
+                <HistoryFilters materials={materials} />
 
                 <Suspense fallback={<TableSkeleton columns={5} />}>
                     <HistoryTable history={history} />
