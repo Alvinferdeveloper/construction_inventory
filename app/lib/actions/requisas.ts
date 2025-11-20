@@ -99,6 +99,9 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
           where: {
             materialId: material.materialId,
             stock_actual: { gt: 0 },
+            bodega: {
+              deletedAt: null
+            }
           },
           orderBy: {
             stock_actual: 'desc',
@@ -176,6 +179,9 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
           where: {
             materialId: material.materialId,
             stock_actual: { gt: 0 },
+            bodega: { // Ensure bodega is not soft-deleted
+              deletedAt: null
+            }
           },
           orderBy: { stock_actual: 'desc' },
         });
@@ -267,9 +273,9 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
       // 3. Mark the detail as approved
       await tx.detalleRequisa.update({
         where: { id: detalle.id },
-        data: { 
-            estado: 'aprobado',
-            movimiento: { connect: { id: movimiento.id } } // Also link from detalleRequisa
+        data: {
+          estado: 'aprobado',
+          movimiento: { connect: { id: movimiento.id } } // Also link from detalleRequisa
         },
       });
 
@@ -279,7 +285,7 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
       });
 
       const todosAprobados = todosLosDetalles.every(d => d.estado === 'aprobado');
-      
+
       const nuevoEstadoRequisa = todosAprobados ? 'aprobada' : 'en_proceso';
 
       // 5. Update the parent requisa status
