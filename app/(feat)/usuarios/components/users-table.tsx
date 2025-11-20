@@ -5,12 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getUsers } from "@/app/lib/queries/users"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import ToggleStatusButton from "@/app/(feat)/usuarios/components/buttons/ToggleStatusButton"
+import { type Rol } from "@prisma/client"
+import UserFormModal from "./user-form-modal"
+import { updateUser } from "@/app/lib/actions/users"
 
 interface UsersTableProps {
     currentPage: number
+    roles: Rol[]
 }
 
-export default async function UsersTable({ currentPage }: UsersTableProps) {
+export default async function UsersTable({ currentPage, roles }: UsersTableProps) {
     const users = await getUsers(currentPage)
 
     const getAvatarColor = (name: string) => {
@@ -84,14 +88,31 @@ export default async function UsersTable({ currentPage }: UsersTableProps) {
 
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
-                                            title="Editar usuario"
+                                        <UserFormModal
+                                            roles={roles}
+                                            action={updateUser}
+                                            title="Editar Usuario"
+                                            description="Actualizar la información del usuario."
+                                            submitText="Actualizar Usuario"
+                                            initialData={{
+                                                id: user.id,
+                                                name: user.name,
+                                                email: user.email,
+                                                rolId: user.rolId,
+                                                phone: user.phone || "",
+                                                direction: user.direction || "",
+                                                identification: user.identification || "",
+                                            }}
                                         >
-                                            <Pencil className="w-4 h-4" />
-                                        </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 cursor-pointer w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-muted-foreground"
+                                                title="Editar usuario"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </Button>
+                                        </UserFormModal>
 
                                         <ToggleStatusButton userId={user.id} isActive={user.isActive} />
 

@@ -30,7 +30,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                         </Button>
                     </UserFormModal>
                 </div>
-                <UsersTable currentPage={currentPage} />
+                <UsersTable currentPage={currentPage} roles={roles} />
                 <Paginate totalPages={totalPages} />
             </div>
         </div>

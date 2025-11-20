@@ -101,3 +101,43 @@ export async function toggleUserStatus(userId: string, currentStatus: boolean) {
         // Optionally, return an error message
     }
 }
+
+export async function updateUser(prevState: CreateUserState, data: UserForm & { id: string }) {
+    const { id, name, email, rolId, phone, direction, identification } = data;
+
+    try {
+        await prisma.user.update({
+            where: { id },
+            data: {
+                name,
+                email,
+                rolId: Number(rolId),
+                phone,
+                direction,
+                identification,
+            }
+        });
+
+        revalidatePath("/usuarios");
+        return {
+            ...data,
+            success: true,
+            message: "Usuario actualizado exitosamente."
+        };
+    } catch (error) {
+        console.error("Error updating user:", error);
+        // Handle potential unique constraint violation on email
+        if (error instanceof Error && 'code' in error && (error as any).code === 'P2002') {
+            return {
+                ...data,
+                success: false,
+                message: "El email ya está en uso por otro usuario."
+            };
+        }
+        return {
+            ...data,
+            success: false,
+            message: "Error al actualizar el usuario."
+        };
+    }
+}

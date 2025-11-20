@@ -10,6 +10,10 @@ export async function getUsers(page: number) {
             email: true,
             image: true,
             isActive: true,
+            rolId: true,
+            phone: true,
+            direction: true,
+            identification: true,
             rol: {
                 select: {
                     nombre: true,
