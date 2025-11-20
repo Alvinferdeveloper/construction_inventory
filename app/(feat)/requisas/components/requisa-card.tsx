@@ -14,7 +14,7 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 
 interface RequisaCardProps {
   requisa: RequisaWithDetails;
-  materiales: { id: number; nombre: string; stockTotal: number; }[]; // Necesitamos los materiales para el modal
+  materiales: { id: number; nombre: string; stockTotal: number; }[];
 }
 
 const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -22,7 +22,7 @@ const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructiv
     case 'aprobada':
       return 'default';
     case 'en_proceso':
-      return 'default'; // O un color diferente si lo prefieres
+      return 'default';
     case 'completada':
       return 'outline';
     case 'rechazada':
@@ -35,7 +35,7 @@ const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructiv
 
 export default function RequisaCard({ requisa, materiales }: RequisaCardProps) {
   const [deleteState, deleteAction] = useActionState(deleteRequisa, { message: null });
-    const totalMateriales = requisa.detalles.length;
+  const totalMateriales = requisa.detalles.length;
 
   return (
     <Card className="flex flex-col">
@@ -53,7 +53,7 @@ export default function RequisaCard({ requisa, materiales }: RequisaCardProps) {
           Solicitado por {requisa.solicitante.name} el {new Date(requisa.fecha).toLocaleDateString()}
         </p>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="grow">
         <Separator className="mb-4" />
         <h4 className="text-sm font-semibold mb-2">Materiales Solicitados ({totalMateriales})</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">

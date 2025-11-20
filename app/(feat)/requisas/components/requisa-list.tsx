@@ -8,7 +8,6 @@ interface RequisaListProps {
 }
 
 export default function RequisaList({ requisas, materiales }: RequisaListProps) {
-  console.log('DATOS RECIBIDOS EN REQUISA LIST:', JSON.stringify(requisas, null, 2));
   if (requisas.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 p-12 text-center">

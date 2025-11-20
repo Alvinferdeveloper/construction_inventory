@@ -7,10 +7,9 @@ import { createRequisa } from '@/app/lib/actions/requisas';
 import { Plus, PackageSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RequisaFormModal from './components/requisa-form-modal';
-import RequisaList from './components/requisa-list'; // Asumimos que este componente mostrará las requisas
+import RequisaList from './components/requisa-list';
 
 export default async function RequisasPage() {
-  // Usamos auth.api.getSession con headers() porque es un Server Component de página
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     redirect('/login');

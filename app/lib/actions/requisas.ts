@@ -4,6 +4,7 @@ import { z } from 'zod';
 import prisma from '@/app/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/app/lib/auth';
+import { headers } from 'next/headers';
 
 const MaterialSchema = z.object({
   materialId: z.number(),
@@ -22,17 +23,13 @@ export type State = {
     database?: string[];
   };
   message?: string | null;
+  success?: boolean;
 };
 
-
-import { headers } from 'next/headers';
-
-// Función para parsear los materiales desde FormData
 function parseMaterialesFromFormData(formData: FormData): { materialId: number; cantidad: number }[] {
   const materiales: { materialId: number; cantidad: number }[] = [];
   const keys = Array.from(formData.keys());
 
-  // Agrupar por índice
   const materialGroups: { [key: string]: any } = {};
   keys.forEach(key => {
     const match = key.match(/materiales\.(\d+)\.(.+)/);
@@ -45,7 +42,6 @@ function parseMaterialesFromFormData(formData: FormData): { materialId: number; 
     }
   });
 
-  // Convertir a array de objetos y filtrar incompletos
   for (const index in materialGroups) {
     const group = materialGroups[index];
     if (group.materialId && group.cantidad) {
@@ -64,6 +60,7 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
   if (!session?.user?.id) {
     return {
       message: 'Error de autenticación. Por favor, inicia sesión de nuevo.',
+      success: false,
     };
   }
 
@@ -79,6 +76,7 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Faltan campos. No se pudo crear la requisa.',
+      success: false,
     };
   }
 
@@ -86,7 +84,6 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Crear la requisa principal para obtener un ID
       const requisa = await tx.requisa.create({
         data: {
           proyecto,
@@ -95,11 +92,9 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
         },
       });
 
-      // 2. Procesar cada material con la lógica de distribución
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
 
-        // Buscar todas las bodegas que tienen este material, ordenadas por la que tiene más stock
         const inventarios = await tx.inventario.findMany({
           where: {
             materialId: material.materialId,
@@ -114,13 +109,11 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
           throw new Error(`Stock insuficiente para el material ID: ${material.materialId}.`);
         }
 
-        // 3. Distribuir la cantidad necesaria entre las bodegas
         for (const inventario of inventarios) {
-          if (cantidadNecesaria <= 0) break; // Ya se cubrió la necesidad
+          if (cantidadNecesaria <= 0) break;
 
           const cantidadADescontar = Math.min(cantidadNecesaria, inventario.stock_actual);
 
-          // Crear el detalle de la requisa asignado a esta bodega
           await tx.detalleRequisa.create({
             data: {
               requisaId: requisa.id,
@@ -138,21 +131,18 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
     console.error('Error al crear la requisa:', error);
     return {
       message: error instanceof Error ? error.message : 'Error de base de datos: No se pudo crear la requisa.',
+      success: false,
     };
   }
 
   revalidatePath('/requisas');
-  return { message: 'Requisa creada exitosamente.', errors: {} };
+  return { message: 'Requisa creada exitosamente.', errors: {}, success: true };
 }
 
-/**
- * Elimina lógicamente una requisa y sus detalles (soft delete).
- * @param requisaId - El ID de la requisa a eliminar.
- */
 export async function updateRequisa(prevState: State, formData: FormData): Promise<State> {
   const requisaId = Number(formData.get('requisaId'));
   if (isNaN(requisaId)) {
-    return { message: 'ID de requisa inválido.' };
+    return { message: 'ID de requisa inválido.', success: false };
   }
   const parsedMateriales = parseMaterialesFromFormData(formData);
 
@@ -165,6 +155,7 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Faltan campos. No se pudo actualizar la requisa.',
+      success: false,
     };
   }
 
@@ -172,16 +163,12 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Actualizar el proyecto de la requisa principal
       await tx.requisa.update({
         where: { id: requisaId },
         data: { proyecto },
       });
-
-      // 2. Eliminar los detalles antiguos para recalcular
       await tx.detalleRequisa.deleteMany({ where: { requisaId: requisaId } });
 
-      // 3. Re-ejecutar la lógica de distribución (similar a createRequisa)
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
 
@@ -218,12 +205,13 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
   } catch (error) {
     console.error('Error al actualizar la requisa:', error);
     return {
-      message: error instanceof Error ? error.message : 'Error de base de datos: No se pudo actualizar la requisa.',
+      message: 'Error: No se pudo actualizar la requisa.',
+      success: false,
     };
   }
 
   revalidatePath('/requisas');
-  return { message: 'Requisa actualizada exitosamente.', errors: {} };
+  return { message: 'Requisa actualizada exitosamente.', errors: {}, success: true };
 }
 
 export async function aprobarDetalle(prevState: State, formData: FormData): Promise<State> {
@@ -231,7 +219,7 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
   const bodegueroId = String(formData.get('bodegueroId'));
 
   if (isNaN(detalleRequisaId) || !bodegueroId) {
-    return { message: 'IDs inválidos.' };
+    return { message: 'IDs inválidos.', success: false };
   }
 
   try {
@@ -246,7 +234,6 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
         throw new Error('No tienes permiso para aprobar este movimiento.');
       }
 
-      // 1. Descontar del inventario
       const inventario = await tx.inventario.findFirst({
         where: {
           bodegaId: detalle.bodegaId!,
@@ -263,13 +250,11 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
         data: { stock_actual: { decrement: detalle.cantidad } },
       });
 
-      // 2. Marcar el detalle como aprobado
       await tx.detalleRequisa.update({
         where: { id: detalle.id },
         data: { estado: 'aprobado' },
       });
 
-      // 3. Actualizar estado de la requisa principal a 'en_proceso' si es necesario
       await tx.requisa.update({
         where: { id: detalle.requisaId },
         data: { estado: 'en_proceso' },
@@ -277,11 +262,11 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
     });
 
     revalidatePath('/bodega/asignaciones');
-    return { message: 'Movimiento aprobado y stock descontado.' };
+    return { message: 'Movimiento aprobado y stock descontado.', success: true };
 
   } catch (error) {
     console.error('Error al aprobar el detalle:', error);
-    return { message: error instanceof Error ? error.message : 'Error de base de datos.' };
+    return { message: error instanceof Error ? error.message : 'Error de base de datos.', success: false };
   }
 }
 
@@ -289,19 +274,17 @@ export async function deleteRequisa(prevState: State, formData: FormData): Promi
   const requisaId = Number(formData.get('requisaId'));
 
   if (isNaN(requisaId)) {
-    return { message: 'ID de requisa inválido.', errors: {} };
+    return { message: 'ID de requisa inválido.', success: false };
   }
   try {
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
-      // 1. Marcar como eliminados los detalles de la requisa
       await tx.detalleRequisa.updateMany({
         where: { requisaId: requisaId },
         data: { deletedAt: now },
       });
 
-      // 2. Marcar como eliminada la requisa principal
       await tx.requisa.update({
         where: { id: requisaId },
         data: { deletedAt: now },
@@ -309,9 +292,9 @@ export async function deleteRequisa(prevState: State, formData: FormData): Promi
     });
 
     revalidatePath('/requisas');
-    return { message: `Requisa #${requisaId} eliminada exitosamente.`, errors: {} };
+    return { message: `Requisa #${requisaId} eliminada exitosamente.`, success: true };
   } catch (error) {
     console.error('Error al eliminar la requisa:', error);
-    return { message: 'Error de base de datos: No se pudo eliminar la requisa.', errors: {} };
+    return { message: 'Error de base de datos: No se pudo eliminar la requisa.', success: false };
   }
 }

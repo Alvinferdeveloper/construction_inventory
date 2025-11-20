@@ -11,11 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PackageSearch, Plus, Trash2 } from 'lucide-react';
 import SubmitButton from '@/app/(feat)/components/shared/SubmitButton';
-import { State, createRequisa, updateRequisa } from '@/app/lib/actions/requisas';
+import { State } from '@/app/lib/actions/requisas';
 import type { RequisaWithDetails } from '@/app/lib/queries/requisa';
-
-
-
 
 type MaterialWithStock = {
   id: number;
@@ -30,10 +27,10 @@ interface RequisaFormModalProps {
   title: string;
   description: string;
   submitText: string;
-  requisaToEdit?: RequisaWithDetails; 
+  requisaToEdit?: RequisaWithDetails;
 }
 
-const INITIAL_STATE: State = { message: null, errors: {} };
+const INITIAL_STATE: State = { message: null, errors: {}, success: false };
 
 export default function RequisaFormModal({
   children,
@@ -45,15 +42,13 @@ export default function RequisaFormModal({
   requisaToEdit,
 }: RequisaFormModalProps) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState('');
   const [formState, formAction, isPending] = useActionState(action, INITIAL_STATE);
 
   const {
     register,
     control,
-    handleSubmit,
     reset,
-    watch,
-    setValue,
   } = useForm({
     defaultValues: {
       proyecto: requisaToEdit?.proyecto || '',
@@ -66,19 +61,41 @@ export default function RequisaFormModal({
     name: 'materiales',
   });
 
-  
-
-  
   useEffect(() => {
-    if (formState.message?.includes('exitosamente')) {
-      setOpen(false);
-      reset({ proyecto: '', materiales: [{ materialId: '', cantidad: 1 }] });
+    if (formState.success) {
+      handleOpenChange(false);
     }
-  }, [formState, reset]);
+    if (formState.message) {
+      setError(formState.message);
+    }
+  }, [formState]);
 
-  
+  useEffect(() => {
+    if (open) {
+      if (requisaToEdit) {
+        reset({
+          proyecto: requisaToEdit.proyecto,
+          materiales: requisaToEdit.detalles.map(d => ({
+            materialId: String(d.materialId),
+            cantidad: d.cantidad
+          }))
+        });
+      } else {
+        reset({
+          proyecto: '',
+          materiales: [{ materialId: '', cantidad: 1 }]
+        });
+      }
+    }
+  }, [open, requisaToEdit, reset]);
+
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    setError('');
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
@@ -110,23 +127,34 @@ export default function RequisaFormModal({
                 <div key={field.id} className="flex items-end gap-2 p-2 border rounded-md">
                   <div className="flex-1">
                     <Label htmlFor={`materiales.${index}.materialId`} className="text-xs text-muted-foreground">Material</Label>
-                    <Select {...register(`materiales.${index}.materialId`)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar material" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {materiales.map((m) => (
-                          <SelectItem key={m.id} value={String(m.id)}>
-                            {m.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                                      </div>
+                    <Controller
+                      name={`materiales.${index}.materialId`}
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          name={field.name}
+                          disabled={field.disabled}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materiales.map((m) => (
+                              <SelectItem key={m.id} value={String(m.id)}>
+                                {m.nombre}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
                   <div className="w-24">
-                     <Label htmlFor={`materiales.${index}.cantidad`} className="text-xs text-muted-foreground">Cantidad</Label>
+                    <Label htmlFor={`materiales.${index}.cantidad`} className="text-xs text-muted-foreground">Cantidad</Label>
                     <Input type="number" min="1" {...register(`materiales.${index}.cantidad`)} />
-                                      </div>
+                  </div>
                   <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -137,16 +165,16 @@ export default function RequisaFormModal({
               <Plus className="h-4 w-4 mr-2" />
               Añadir Material
             </Button>
-                      </div>
+          </div>
 
-          {formState.message && !formState.message.includes('exitosamente') && (
+          {!formState.success && error && (
             <div className="mt-1 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {formState.message}
+              {error}
             </div>
           )}
 
           <div className="flex gap-2 justify-end pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               Cancelar
             </Button>
             <SubmitButton text={submitText} pending={isPending} />

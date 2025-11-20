@@ -18,10 +18,6 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
-    trustedOrigins: [
-      "http://localhost:3000",
-      "http://192.168.56.1:3000",
-    ],
     plugins: [
         customSession(async ({ user, session }) => {
             const userWithRole = await prisma.user.findUnique({
