@@ -6,6 +6,7 @@ import {
   FileText,
   BarChart3,
   Truck,
+  Database,
 } from "lucide-react"
 export const menuByRole: {
   [key: string]: {
@@ -41,6 +42,10 @@ export const menuByRole: {
       name: "Reportes",
       href: "/reportes",
       icon: <FileText size={20} />,
+    },{
+      name: "Restauracion",
+      href:"/backup",
+      icon: <Database size={20}/>,
     }],
   },
   BODEGUERO: {
