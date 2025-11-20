@@ -2,6 +2,7 @@
 import prisma from "@/app/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { UserForm } from "@/app/(feat)/usuarios/components/user-form-modal"
+import bcrypt from "bcryptjs"
 import { APIError } from "better-auth"
 
 interface CreateUserState extends UserForm {
@@ -37,6 +38,8 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
 
     try {
         const randomPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(randomPassword, 10); // Hash the password
+
         const user = await prisma.user.findFirst({
             where: {
                 identification: identification
@@ -55,7 +58,7 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
             body: {
                 name,
                 email,
-                password: randomPassword,
+                password: hashedPassword, // Use the hashed password
                 phone,
                 direction,
                 identification,
@@ -83,5 +86,18 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
             success: false,
             message: "Error al crear el usuario."
         }
+    }
+}
+
+export async function toggleUserStatus(userId: string, currentStatus: boolean) {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isActive: !currentStatus },
+        });
+        revalidatePath("/usuarios");
+    } catch (error) {
+        console.error("Error toggling user status:", error);
+        // Optionally, return an error message
     }
 }

@@ -1,16 +1,17 @@
-import { Package, Pencil, Trash2, UserCheck, UserX } from "lucide-react"
+import { Package, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getUsers } from "@/app/lib/queries/users" // This will be created later
+import { getUsers } from "@/app/lib/queries/users"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import ToggleStatusButton from "@/app/(feat)/usuarios/components/buttons/ToggleStatusButton"
 
 interface UsersTableProps {
     currentPage: number
 }
 
 export default async function UsersTable({ currentPage }: UsersTableProps) {
-    const users = await getUsers(currentPage) // This will be created later
+    const users = await getUsers(currentPage)
 
     const getAvatarColor = (name: string) => {
         const colors = [
@@ -83,7 +84,6 @@ export default async function UsersTable({ currentPage }: UsersTableProps) {
 
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        {/* Placeholder for Edit User Modal */}
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -93,17 +93,8 @@ export default async function UsersTable({ currentPage }: UsersTableProps) {
                                             <Pencil className="w-4 h-4" />
                                         </Button>
 
-                                        {/* Placeholder for Activate/Deactivate User Button */}
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className={`h-8 cursor-pointer w-8 p-0 ${user.isActive ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-green-100 hover:text-green-700"} text-muted-foreground`}
-                                            title={user.isActive ? "Desactivar usuario" : "Activar usuario"}
-                                        >
-                                            {user.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                                        </Button>
+                                        <ToggleStatusButton userId={user.id} isActive={user.isActive} />
 
-                                        {/* Placeholder for Delete User Button */}
                                         <Button
                                             variant="ghost"
                                             size="sm"
