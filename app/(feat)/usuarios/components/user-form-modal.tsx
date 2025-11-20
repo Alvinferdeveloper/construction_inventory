@@ -209,7 +209,7 @@ export default function UserFormModal({
                             <Label htmlFor="identification">Identificación</Label>
                             <Input
                                 id="identification"
-                                placeholder="Ej: 123456789"
+                                placeholder="XXX-XXXXXX-XXXXP"
                                 {...register("identification")}
                             />
                             {errors.identification && <p className="text-red-500 text-xs">{errors.identification.message}</p>}
