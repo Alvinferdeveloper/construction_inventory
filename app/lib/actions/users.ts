@@ -2,7 +2,6 @@
 import prisma from "@/app/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { UserForm } from "@/app/(feat)/usuarios/components/user-form-modal"
-import bcrypt from "bcryptjs"
 import { APIError } from "better-auth"
 import crypto from "crypto";
 import { auth } from "@/app/lib/auth"

@@ -41,8 +41,13 @@ export async function getGeneralInventory() {
         where: { deletedAt: null },
         include: {
             categoria: true,
-            inventario: {
-                where: { deletedAt: null },
+            inventario: { // Include inventory items
+                where: {
+                    deletedAt: null,
+                    bodega: { // Ensure the associated bodega is not deleted
+                        deletedAt: null
+                    }
+                },
                 include: {
                     bodega: {
                         select: { nombre: true }

@@ -147,48 +147,51 @@ model Inventario {
 }
 
 model Movimiento {
-  id            Int            @id @default(autoincrement())
-  inventarioId  Int
-  tipo          MovimientoTipo
-  cantidad      Int
-  fecha         DateTime       @default(now())
-  usuarioId     String
-  observaciones String?
-  reason        String?
-  inventario    Inventario     @relation(fields: [inventarioId], references: [id])
-  usuario       User           @relation(fields: [usuarioId], references: [id])
-  deletedAt     DateTime?
+  id               Int             @id @default(autoincrement())
+  inventarioId     Int
+  tipo             MovimientoTipo
+  cantidad         Int
+  fecha            DateTime        @default(now())
+  usuarioId        String
+  observaciones    String?
+  reason           String?
+  inventario       Inventario      @relation(fields: [inventarioId], references: [id])
+  usuario          User            @relation(fields: [usuarioId], references: [id])
+  deletedAt        DateTime?
+  detalleRequisaId Int?            @unique
+  detalleRequisa   DetalleRequisa? @relation(fields: [detalleRequisaId], references: [id])
 
   @@map("movimientos")
 }
 
 model Requisa {
-  id               Int              @id @default(autoincrement())
-  proyecto         String           @db.VarChar(200)
-  solicitanteId    String
-  fecha            DateTime         @default(now())
-  estado           RequisaEstado    @default(pendiente)
-  destino          String?
+  id                Int              @id @default(autoincrement())
+  proyecto          String           @db.VarChar(200)
+  solicitanteId     String
+  fecha             DateTime         @default(now())
+  estado            RequisaEstado    @default(pendiente)
+  destino           String?
   rejectionComments String?
-  solicitante      User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id])
-  detalles         DetalleRequisa[]
-  deletedAt        DateTime?
+  solicitante       User             @relation("SolicitanteRequisa", fields: [solicitanteId], references: [id])
+  detalles          DetalleRequisa[]
+  deletedAt         DateTime?
 
   @@map("requisas")
 }
 
 model DetalleRequisa {
   id          Int       @id @default(autoincrement())
-  requisa     Requisa  @relation(fields: [requisaId], references: [id])
+  requisa     Requisa   @relation(fields: [requisaId], references: [id])
   requisaId   Int
-  material    Material @relation(fields: [materialId], references: [id])
+  material    Material  @relation(fields: [materialId], references: [id])
   materialId  Int
   cantidad    Int
   descripcion String?
-  bodega      Bodega?  @relation(fields: [bodegaId], references: [id])
+  bodega      Bodega?   @relation(fields: [bodegaId], references: [id])
   bodegaId    Int?
   estado      DetalleRequisaEstado @default(pendiente)
   deletedAt   DateTime?
+  movimiento  Movimiento?
 
   @@map("detalle_requisas")
 }

@@ -92,13 +92,24 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
         },
       });
 
+      const materialIds = materiales.map(m => m.materialId);
+      const materialDetails = await tx.material.findMany({
+        where: { id: { in: materialIds } },
+        select: { id: true, nombre: true }
+      });
+      const materialNameMap = new Map(materialDetails.map(m => [m.id, m.nombre]));
+
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
+        const materialNombre = materialNameMap.get(material.materialId) || `ID: ${material.materialId}`;
 
         const inventarios = await tx.inventario.findMany({
           where: {
             materialId: material.materialId,
             stock_actual: { gt: 0 },
+            bodega: {
+              deletedAt: null
+            }
           },
           orderBy: {
             stock_actual: 'desc',
@@ -106,7 +117,7 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
         });
 
         if (inventarios.reduce((acc, inv) => acc + inv.stock_actual, 0) < cantidadNecesaria) {
-          throw new Error(`Stock insuficiente para el material ID: ${material.materialId}.`);
+          throw new Error(`Stock insuficiente para el material: ${materialNombre}.`);
         }
 
         for (const inventario of inventarios) {
@@ -169,19 +180,30 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
       });
       await tx.detalleRequisa.deleteMany({ where: { requisaId: requisaId } });
 
+      const materialIds = materiales.map(m => m.materialId);
+      const materialDetails = await tx.material.findMany({
+        where: { id: { in: materialIds } },
+        select: { id: true, nombre: true }
+      });
+      const materialNameMap = new Map(materialDetails.map(m => [m.id, m.nombre]));
+
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
+        const materialNombre = materialNameMap.get(material.materialId) || `ID: ${material.materialId}`;
 
         const inventarios = await tx.inventario.findMany({
           where: {
             materialId: material.materialId,
             stock_actual: { gt: 0 },
+            bodega: {
+              deletedAt: null
+            }
           },
           orderBy: { stock_actual: 'desc' },
         });
 
         if (inventarios.reduce((acc, inv) => acc + inv.stock_actual, 0) < cantidadNecesaria) {
-          throw new Error(`Stock insuficiente para el material ID: ${material.materialId}.`);
+          throw new Error(`Stock insuficiente para el material: ${materialNombre}.`);
         }
 
         for (const inventario of inventarios) {
@@ -230,6 +252,7 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
       });
 
       if (!detalle) throw new Error('El detalle de la requisa no existe.');
+      if (detalle.estado === 'aprobado') throw new Error('Este detalle ya ha sido aprobado.');
       if (detalle.bodega?.responsableId !== bodegueroId) {
         throw new Error('No tienes permiso para aprobar este movimiento.');
       }
@@ -245,19 +268,46 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
         throw new Error('Stock insuficiente en la bodega para completar esta acción.');
       }
 
+      // 1. Update inventory stock
       await tx.inventario.update({
         where: { id: inventario.id },
         data: { stock_actual: { decrement: detalle.cantidad } },
       });
 
-      await tx.detalleRequisa.update({
-        where: { id: detalle.id },
-        data: { estado: 'aprobado' },
+      // 2. Create the movement record
+      const movimiento = await tx.movimiento.create({
+        data: {
+          inventarioId: inventario.id,
+          tipo: 'salida',
+          cantidad: detalle.cantidad,
+          usuarioId: bodegueroId,
+          observaciones: `Salida por Requisa #${detalle.requisaId}`,
+          detalleRequisaId: detalle.id, // Link the movement to the detalleRequisa
+        }
       });
 
+      // 3. Mark the detail as approved
+      await tx.detalleRequisa.update({
+        where: { id: detalle.id },
+        data: {
+          estado: 'aprobado',
+          movimiento: { connect: { id: movimiento.id } } // Also link from detalleRequisa
+        },
+      });
+
+      // 4. Check the status of all other details for the same requisa
+      const todosLosDetalles = await tx.detalleRequisa.findMany({
+        where: { requisaId: detalle.requisaId },
+      });
+
+      const todosAprobados = todosLosDetalles.every(d => d.estado === 'aprobado');
+
+      const nuevoEstadoRequisa = todosAprobados ? 'aprobada' : 'en_proceso';
+
+      // 5. Update the parent requisa status
       await tx.requisa.update({
         where: { id: detalle.requisaId },
-        data: { estado: 'en_proceso' },
+        data: { estado: nuevoEstadoRequisa },
       });
     });
 
