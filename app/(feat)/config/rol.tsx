@@ -77,6 +77,10 @@ export const menuByRole: {
       name: "Solicitudes de Material",
       href: "/bodega/asignaciones",
       icon: <FileText size={20} />,
+    }, {
+        name: "Reportes",
+        href: "/reportes",
+        icon: <FileText size={20} />,
     }],
   },
   SUPERVISOR: {

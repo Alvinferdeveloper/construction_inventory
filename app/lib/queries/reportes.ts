@@ -1,5 +1,5 @@
 import prisma from "@/app/lib/prisma";
-import { MovimientoTipo } from "@prisma/client";
+import { DetalleRequisaEstado, MovimientoTipo } from "@prisma/client";
 
 const ITEMS_PER_PAGE = 15;
 
@@ -44,6 +44,7 @@ interface MovementHistoryFilters {
     tipo?: MovimientoTipo;
     bodegaId?: number;
     materialId?: number;
+    bodegaIds?: number[];
 }
 
 export async function getMovementHistory({
@@ -52,7 +53,8 @@ export async function getMovementHistory({
     dateTo,
     tipo,
     bodegaId,
-    materialId
+    materialId,
+    bodegaIds
 }: MovementHistoryFilters) {
 
     const whereClause: any = {
@@ -73,6 +75,9 @@ export async function getMovementHistory({
     }
     if (materialId) {
         whereClause.inventario.materialId = materialId;
+    }
+    if (bodegaIds && bodegaIds.length > 0) {
+        whereClause.inventario.bodegaId = { in: bodegaIds };
     }
 
     const [movements, totalMovements] = await prisma.$transaction([
@@ -97,8 +102,57 @@ export async function getMovementHistory({
         }),
         prisma.movimiento.count({ where: whereClause })
     ]);
-    
+
     const totalPages = Math.ceil(totalMovements / ITEMS_PER_PAGE);
 
     return { movements, totalPages };
 }
+
+interface RequisitionDetailsFilters {
+    page: number;
+    userId: string;
+    estado?: DetalleRequisaEstado;
+}
+
+export async function getRequisitionDetailsForBodeguero({
+    page,
+    userId,
+    estado,
+}: RequisitionDetailsFilters) {
+    const whereClause: any = {
+        bodega: {
+            responsableId: userId,
+        },
+    };
+
+    if (estado) {
+        whereClause.estado = estado;
+    }
+
+    const [details, totalDetails] = await prisma.$transaction([
+        prisma.detalleRequisa.findMany({
+            where: whereClause,
+            include: {
+                requisa: {
+                    select: { proyecto: true, solicitante: { select: { name: true } } }
+                },
+                material: {
+                    select: { nombre: true }
+                }
+            },
+            orderBy: {
+                requisa: {
+                    fecha: 'desc'
+                }
+            },
+            skip: (page - 1) * ITEMS_PER_PAGE,
+            take: ITEMS_PER_PAGE,
+        }),
+        prisma.detalleRequisa.count({ where: whereClause })
+    ]);
+
+    const totalPages = Math.ceil(totalDetails / ITEMS_PER_PAGE);
+
+    return { details, totalPages };
+}
+
