@@ -1,12 +1,12 @@
-import { Pencil, Package } from "lucide-react"
+import { Pencil, Package, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import DeleteBodega from "@/app/(feat)/bodegas/components/buttons/DeleteBodega"
 import { getBodegas } from "@/app/lib/queries/bodegas"
 import { getBodegueros } from "@/app/lib/queries/bodegueros"
 import { updateBodega } from "@/app/lib/actions/bodegas"
 import BodegaFormModal from "@/app/(feat)/bodegas/components/bodega-form-modal"
+import { DeleteBodegaFlowModal } from "./buttons/DeleteBodegaFlowModal"
 
 interface BodegasTableProps {
     currentPage: number
@@ -15,7 +15,7 @@ interface BodegasTableProps {
 export default async function BodegasTable({ currentPage }: BodegasTableProps) {
     const bodegas = await getBodegas(currentPage)
     const bodegueros = await getBodegueros()
-
+    
     const getAvatarColor = (name: string) => {
         const colors = [
             "bg-blue-100 text-blue-700",
@@ -103,7 +103,16 @@ export default async function BodegasTable({ currentPage }: BodegasTableProps) {
                                             </Button>
                                         </BodegaFormModal>
 
-                                        <DeleteBodega bodegaId={bodega.id} />
+                                        <DeleteBodegaFlowModal bodegaId={bodega.id} bodegaNombre={bodega.nombre}>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 cursor-pointer w-8 p-0 hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
+                                                title="Eliminar bodega"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </DeleteBodegaFlowModal>
                                     </div>
                                 </TableCell>
                             </TableRow>
