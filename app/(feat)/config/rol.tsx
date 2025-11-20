@@ -72,8 +72,6 @@ export const menuByRole: {
       href: "/dashboard/bodeguero",
       icon: <Home size={20} />,
     }, {
-      name: "Entradas",
-      href: "/entradas",
       name: "Movimientos",
       icon: <Truck size={20} />,
       subItems: [
