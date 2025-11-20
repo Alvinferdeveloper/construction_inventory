@@ -92,8 +92,16 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
         },
       });
 
+      const materialIds = materiales.map(m => m.materialId);
+      const materialDetails = await tx.material.findMany({
+        where: { id: { in: materialIds } },
+        select: { id: true, nombre: true }
+      });
+      const materialNameMap = new Map(materialDetails.map(m => [m.id, m.nombre]));
+
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
+        const materialNombre = materialNameMap.get(material.materialId) || `ID: ${material.materialId}`;
 
         const inventarios = await tx.inventario.findMany({
           where: {
@@ -109,7 +117,7 @@ export async function createRequisa(prevState: State, formData: FormData): Promi
         });
 
         if (inventarios.reduce((acc, inv) => acc + inv.stock_actual, 0) < cantidadNecesaria) {
-          throw new Error(`Stock insuficiente para el material ID: ${material.materialId}.`);
+          throw new Error(`Stock insuficiente para el material: ${materialNombre}.`);
         }
 
         for (const inventario of inventarios) {
@@ -172,14 +180,22 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
       });
       await tx.detalleRequisa.deleteMany({ where: { requisaId: requisaId } });
 
+      const materialIds = materiales.map(m => m.materialId);
+      const materialDetails = await tx.material.findMany({
+        where: { id: { in: materialIds } },
+        select: { id: true, nombre: true }
+      });
+      const materialNameMap = new Map(materialDetails.map(m => [m.id, m.nombre]));
+
       for (const material of materiales) {
         let cantidadNecesaria = material.cantidad;
+        const materialNombre = materialNameMap.get(material.materialId) || `ID: ${material.materialId}`;
 
         const inventarios = await tx.inventario.findMany({
           where: {
             materialId: material.materialId,
             stock_actual: { gt: 0 },
-            bodega: { // Ensure bodega is not soft-deleted
+            bodega: {
               deletedAt: null
             }
           },
@@ -187,7 +203,7 @@ export async function updateRequisa(prevState: State, formData: FormData): Promi
         });
 
         if (inventarios.reduce((acc, inv) => acc + inv.stock_actual, 0) < cantidadNecesaria) {
-          throw new Error(`Stock insuficiente para el material ID: ${material.materialId}.`);
+          throw new Error(`Stock insuficiente para el material: ${materialNombre}.`);
         }
 
         for (const inventario of inventarios) {
