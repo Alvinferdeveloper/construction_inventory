@@ -36,7 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <nav className="p-4 space-y-1">
           {menu.map((item, index) => (
-            <SidebarItem key={index} text={item.name} icon={item.icon} href={item.href} isLast={index === menu.length - 1} />
+            <SidebarItem key={index} text={item.name} icon={item.icon} href={item.href} isLast={index === menu.length - 1} subItems={item.subItems} />
           ))}
 
           <Separator className="my-4" />

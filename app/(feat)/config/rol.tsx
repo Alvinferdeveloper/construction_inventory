@@ -7,13 +7,21 @@ import {
   BarChart3,
   Truck,
   Database,
+  LogIn,
+  LogOut,
 } from "lucide-react"
+
 export const menuByRole: {
   [key: string]: {
     menu: {
       name: string
-      href: string
+      href?: string // href is optional for dropdowns
       icon: React.ReactNode
+      subItems?: {
+        name: string
+        href: string
+        icon: React.ReactNode
+      }[]
     }[]
   }
 } = {
@@ -36,27 +44,29 @@ export const menuByRole: {
       icon: <LayoutDashboard size={20} />,
     }, {
       name: "Movimientos",
-      href: "/movimientos",
       icon: <Truck size={20} />,
+      subItems: [
+        { name: "Entradas", href: "/entradas", icon: <LogIn size={16} /> },
+        { name: "Salidas", href: "/salidas", icon: <LogOut size={16} /> }
+      ]
     }, {
       name: "Reportes",
       href: "/reportes",
       icon: <FileText size={20} />,
-    },{
+    }, {
       name: "Restauracion",
-      href:"/backup",
-      icon: <Database size={20}/>,
+      href: "/backup",
+      icon: <Database size={20} />,
     }],
   },
   BODEGUERO: {
     menu: [{
-      name: "Entradas",
-      href: "/entradas",
+      name: "Movimientos",
       icon: <Truck size={20} />,
-    }, {
-      name: "Salidas",
-      href: "/salidas",
-      icon: <Package size={20} />,
+      subItems: [
+        { name: "Entradas", href: "/movimientos/entradas", icon: <LogIn size={16} /> },
+        { name: "Salidas", href: "/movimientos/salidas", icon: <LogOut size={16} /> }
+      ]
     }, {
       name: "Inventario",
       href: "/inventario",
