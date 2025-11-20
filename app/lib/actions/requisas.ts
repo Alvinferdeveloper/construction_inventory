@@ -253,20 +253,24 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
       });
 
       // 2. Create the movement record
-      await tx.movimiento.create({
+      const movimiento = await tx.movimiento.create({
         data: {
           inventarioId: inventario.id,
           tipo: 'salida',
           cantidad: detalle.cantidad,
           usuarioId: bodegueroId,
           observaciones: `Salida por Requisa #${detalle.requisaId}`,
+          detalleRequisaId: detalle.id, // Link the movement to the detalleRequisa
         }
       });
 
       // 3. Mark the detail as approved
       await tx.detalleRequisa.update({
         where: { id: detalle.id },
-        data: { estado: 'aprobado' },
+        data: { 
+            estado: 'aprobado',
+            movimiento: { connect: { id: movimiento.id } } // Also link from detalleRequisa
+        },
       });
 
       // 4. Check the status of all other details for the same requisa

@@ -9,6 +9,7 @@ import {
   Database,
   LogIn,
   LogOut,
+  History,
 } from "lucide-react"
 
 export const menuByRole: {
@@ -64,8 +65,8 @@ export const menuByRole: {
       name: "Movimientos",
       icon: <Truck size={20} />,
       subItems: [
-        { name: "Entradas", href: "/movimientos/entradas", icon: <LogIn size={16} /> },
-        { name: "Salidas", href: "/movimientos/salidas", icon: <LogOut size={16} /> }
+        { name: "Entradas", href: "/entradas", icon: <LogIn size={16} /> },
+        { name: "Salidas", href: "/salidas", icon: <LogOut size={16} /> }
       ]
     }, {
       name: "Inventario",
@@ -86,6 +87,10 @@ export const menuByRole: {
       name: "Estado de Requisas",
       href: "/estado-de-requisas",
       icon: <FileText size={20} />,
+    }, {
+      name: "Historial de Recibidos",
+      href: "/historial-materiales",
+      icon: <History size={20} />,
     }],
   },
   JEFE: {
