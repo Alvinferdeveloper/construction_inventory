@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache"
 import { UserForm } from "@/app/(feat)/usuarios/components/user-form-modal"
 import bcrypt from "bcryptjs"
 import { APIError } from "better-auth"
+import crypto from "crypto";
+import { auth } from "@/app/lib/auth"
 
 interface CreateUserState extends UserForm {
     success: boolean;
     message: string;
     generatedPassword?: string;
 }
-import crypto from "crypto";
-import { auth } from "../auth"
 
 const generateRandomPassword = (length = 12) => {
     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-="
@@ -38,8 +38,6 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
 
     try {
         const randomPassword = generateRandomPassword();
-        const hashedPassword = await bcrypt.hash(randomPassword, 10); // Hash the password
-
         const user = await prisma.user.findFirst({
             where: {
                 identification: identification
@@ -54,11 +52,11 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
             }
         }
 
-        const response = await auth.api.signUpEmail({
+        await auth.api.signUpEmail({
             body: {
                 name,
                 email,
-                password: hashedPassword, // Use the hashed password
+                password: randomPassword,
                 phone,
                 direction,
                 identification,
@@ -98,7 +96,6 @@ export async function toggleUserStatus(userId: string, currentStatus: boolean) {
         revalidatePath("/usuarios");
     } catch (error) {
         console.error("Error toggling user status:", error);
-        // Optionally, return an error message
     }
 }
 
