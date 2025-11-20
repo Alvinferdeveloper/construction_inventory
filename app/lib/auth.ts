@@ -1,15 +1,31 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { customSession } from "better-auth/plugins";
+import { createAuthMiddleware, customSession } from "better-auth/plugins";
 import prisma from "@/app/lib/prisma";
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "mysql",
     }),
+    hooks: {
+        before: createAuthMiddleware(async (ctx) => {
+            if (ctx.path === "/sign-in/email") {
+                const { email } = ctx.body as { email: string };
+                const user = await prisma.user.findUnique({
+                    where: { email },
+                    select: { isActive: true },
+                });
+                if (user && user.isActive === false) {
+                    throw new Error("Tu cuenta está desactivada.");
+                }
+            }
+        }),
+    },
     user: {
         additionalFields: {
             phone: { type: "string", required: false, input: true },
             direction: { type: "string", required: false, input: true },
+            isActive: { type: "boolean", required: true, input: false },
             identification: { type: "string", required: true, input: true },
             rolId: { type: "number", required: true, input: true },
             rol: { type: "string", required: false, input: false },
