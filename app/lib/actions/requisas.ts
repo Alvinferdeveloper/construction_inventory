@@ -230,6 +230,7 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
       });
 
       if (!detalle) throw new Error('El detalle de la requisa no existe.');
+      if (detalle.estado === 'aprobado') throw new Error('Este detalle ya ha sido aprobado.');
       if (detalle.bodega?.responsableId !== bodegueroId) {
         throw new Error('No tienes permiso para aprobar este movimiento.');
       }
@@ -245,19 +246,42 @@ export async function aprobarDetalle(prevState: State, formData: FormData): Prom
         throw new Error('Stock insuficiente en la bodega para completar esta acción.');
       }
 
+      // 1. Update inventory stock
       await tx.inventario.update({
         where: { id: inventario.id },
         data: { stock_actual: { decrement: detalle.cantidad } },
       });
 
+      // 2. Create the movement record
+      await tx.movimiento.create({
+        data: {
+          inventarioId: inventario.id,
+          tipo: 'salida',
+          cantidad: detalle.cantidad,
+          usuarioId: bodegueroId,
+          observaciones: `Salida por Requisa #${detalle.requisaId}`,
+        }
+      });
+
+      // 3. Mark the detail as approved
       await tx.detalleRequisa.update({
         where: { id: detalle.id },
         data: { estado: 'aprobado' },
       });
 
+      // 4. Check the status of all other details for the same requisa
+      const todosLosDetalles = await tx.detalleRequisa.findMany({
+        where: { requisaId: detalle.requisaId },
+      });
+
+      const todosAprobados = todosLosDetalles.every(d => d.estado === 'aprobado');
+      
+      const nuevoEstadoRequisa = todosAprobados ? 'aprobada' : 'en_proceso';
+
+      // 5. Update the parent requisa status
       await tx.requisa.update({
         where: { id: detalle.requisaId },
-        data: { estado: 'en_proceso' },
+        data: { estado: nuevoEstadoRequisa },
       });
     });
 
