@@ -7,6 +7,7 @@ import {
   BarChart3,
   Truck,
   Database,
+  Home,
   LogIn,
   LogOut,
   History,
@@ -29,6 +30,10 @@ export const menuByRole: {
 } = {
   ADMINISTRADOR: {
     menu: [{
+      name: "Dashboard",
+      href: "/dashboard/admin",
+      icon: <Home size={20} />,
+    }, {
       name: "Usuarios",
       href: "/usuarios",
       icon: <Users size={20} />,
@@ -63,6 +68,12 @@ export const menuByRole: {
   },
   BODEGUERO: {
     menu: [{
+      name: "Dashboard",
+      href: "/dashboard/bodeguero",
+      icon: <Home size={20} />,
+    }, {
+      name: "Entradas",
+      href: "/entradas",
       name: "Movimientos",
       icon: <Truck size={20} />,
       subItems: [
@@ -85,6 +96,10 @@ export const menuByRole: {
   },
   SUPERVISOR: {
     menu: [{
+      name: "Dashboard",
+      href: "/dashboard/supervisor",
+      icon: <Home size={20} />,
+    }, {
       name: "Solicitar Materiales",
       href: "/requisas",
       icon: <Package size={20} />,
@@ -108,6 +123,10 @@ export const menuByRole: {
   },
   JEFE: {
     menu: [{
+      name: "Dashboard",
+      href: "/dashboard/jefe",
+      icon: <Home size={20} />,
+    }, {
       name: "Bodegas",
       href: "/bodegas",
       icon: <Warehouse size={20} />,
