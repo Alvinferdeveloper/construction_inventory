@@ -2,52 +2,84 @@
 
 import { useState } from "react";
 import { generarBackup } from "@/app/lib/actions/backup";
-import { Loader2, CheckCircle, AlertCircle, Download, Database, UploadCloud } from "lucide-react";
+import { 
+  Loader2, 
+  CheckCircle, 
+  AlertCircle, 
+  Download, 
+  Database, 
+  UploadCloud 
+} from "lucide-react";
 
-export default function BackupRestoreFull() {
-  const [loading, setLoading] = useState(false);
-  const [estado, setEstado] = useState<"normal" | "ok" | "error">("normal");
+export default function BackupRestorePage() {
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [backupEstado, setBackupEstado] = useState<"normal" | "ok" | "error">("normal");
+
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreEstado, setRestoreEstado] = useState<"normal" | "ok" | "error">("normal");
 
   async function handleBackup() {
     try {
-      setLoading(true);
-      setEstado("normal");
+      setBackupLoading(true);
+      setBackupEstado("normal");
+
       const file = await generarBackup();
       const link = document.createElement("a");
       link.href = `/api/secure-backup/${file}`;
       link.download = file;
       link.click();
-      setEstado("ok");
+
+      setBackupEstado("ok");
     } catch (err) {
       console.error(err);
-      setEstado("error");
+      setBackupEstado("error");
     } finally {
-      setLoading(false);
-      setTimeout(() => setEstado("normal"), 3000);
+      setBackupLoading(false);
+      setTimeout(() => setBackupEstado("normal"), 3000);
     }
   }
 
-  const getButtonStyles = () => {
-    const base = "flex items-center justify-center gap-3 px-8 py-5 text-white rounded-2xl shadow-xl transition-all duration-300 font-semibold w-full max-w-lg";
-    if (loading) return `${base} bg-blue-500 cursor-wait opacity-90`;
-    if (estado === "error") return `${base} bg-red-500 hover:bg-red-600 cursor-not-allowed`;
-    return `${base} bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 cursor-pointer`;
-  };
+  async function handleRestore(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const getEstadoStyles = () => {
-    const base = "flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-300 animate-in fade-in-50";
-    switch (estado) {
-      case "ok": return `${base} bg-green-50 border-green-200 text-green-700`;
-      case "error": return `${base} bg-red-50 border-red-200 text-red-700`;
-      default: return "hidden";
+    try {
+      setRestoreLoading(true);
+      setRestoreEstado("normal");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/secure-restore", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error restaurando");
+
+      setRestoreEstado("ok");
+    } catch (err) {
+      console.error(err);
+      setRestoreEstado("error");
+    } finally {
+      setRestoreLoading(false);
+      setTimeout(() => setRestoreEstado("normal"), 4000);
     }
+  }
+
+  const getButtonStyles = (loading: boolean, estado: string, color: string) => {
+    const base = "flex items-center justify-center gap-3 px-8 py-5 text-white rounded-2xl shadow-xl transition-all duration-300 font-semibold w-full max-w-lg";
+    if (loading) return `${base} bg-${color}-500 cursor-wait opacity-90`;
+    if (estado === "error") return `${base} bg-red-500 hover:bg-red-600 cursor-not-allowed`;
+    return `${base} bg-gradient-to-r from-${color}-600 to-${color}-700 hover:from-${color}-700 hover:to-${color}-800 active:scale-95 cursor-pointer`;
   };
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-center items-center bg-gray-50 gap-16 p-10">
-      
-      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-10">
-        
+      <div className="w-full max-w-6xl flex flex-col md:flex-row gap-10">
+
+        {/* CARD BACKUP */}
         <div className="flex-1 p-8 bg-white rounded-3xl shadow-2xl flex flex-col gap-6">
           <div className="flex items-center gap-4">
             <div className="p-4 bg-blue-100 rounded-xl">
@@ -59,8 +91,8 @@ export default function BackupRestoreFull() {
             </div>
           </div>
 
-          <button onClick={handleBackup} disabled={loading || estado === "error"} className={getButtonStyles()}>
-            {loading ? (
+          <button onClick={handleBackup} disabled={backupLoading || backupEstado === "error"} className={getButtonStyles(backupLoading, backupEstado, "blue")}>
+            {backupLoading ? (
               <>
                 <Loader2 className="animate-spin" size={24} />
                 <span className="text-lg">Generando respaldo...</span>
@@ -73,32 +105,28 @@ export default function BackupRestoreFull() {
             )}
           </button>
 
-          <div className={getEstadoStyles()}>
-            {estado === "ok" && (
-              <>
-                <CheckCircle size={22} className="flex-shrink-0" />
-                <div>
-                  <p className="font-medium">¡Respaldo generado correctamente!</p>
-                  <p className="text-sm opacity-80">El archivo se está descargando automáticamente</p>
-                </div>
-              </>
-            )}
-            {estado === "error" && (
-              <>
-                <AlertCircle size={22} className="flex-shrink-0" />
-                <div>
-                  <p className="font-medium">Error al generar el respaldo</p>
-                  <p className="text-sm opacity-80">Intenta nuevamente en unos momentos</p>
-                </div>
-              </>
-            )}
-          </div>
+          {backupEstado !== "normal" && (
+            <div className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 ${backupEstado === "ok" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700"}`}>
+              {backupEstado === "ok" ? (
+                <>
+                  <CheckCircle size={20} />
+                  <span>¡Respaldo generado correctamente!</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={20} />
+                  <span>Error al generar el respaldo</span>
+                </>
+              )}
+            </div>
+          )}
 
           <p className="mt-2 text-sm text-gray-500 text-center">
             El proceso puede tardar según el tamaño de la base de datos
           </p>
         </div>
 
+        {/* CARD RESTORE */}
         <div className="flex-1 p-8 bg-white rounded-3xl shadow-2xl flex flex-col gap-6">
           <div className="flex items-center gap-4">
             <div className="p-4 bg-purple-100 rounded-xl">
@@ -110,15 +138,43 @@ export default function BackupRestoreFull() {
             </div>
           </div>
 
-          <input type="file" accept=".sql" disabled className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 cursor-not-allowed" />
+          <input 
+            type="file" 
+            accept=".sql" 
+            onChange={handleRestore} 
+            disabled={restoreLoading} 
+            className="w-full p-4 border rounded-xl bg-gray-50 text-gray-700 cursor-pointer" 
+          />
 
-          <button disabled className="flex items-center justify-center gap-3 px-8 py-5 mt-4 bg-gray-400 text-white rounded-2xl cursor-not-allowed">
-            <UploadCloud size={22} />
-            Restaurar Base de Datos (próximamente)
-          </button>
+          {/* Loader y estados encima del botón */}
+          {(restoreLoading || restoreEstado !== "normal") && (
+            <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border mb-2 transition-all duration-300
+              bg-purple-50 border-purple-200 text-purple-700">
+              {restoreLoading && (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>Restaurando base de datos...</span>
+                </>
+              )}
+              {restoreEstado === "ok" && (
+                <>
+                  <CheckCircle size={20} />
+                  <span>Base de datos restaurada correctamente</span>
+                </>
+              )}
+              {restoreEstado === "error" && (
+                <>
+                  <AlertCircle size={20} />
+                  <span>Error al restaurar la base de datos</span>
+                </>
+              )}
+            </div>
+          )}
+
+         
 
           <p className="mt-2 text-sm text-gray-500 text-center">
-            Esta función estará disponible en una próxima actualización
+            Esta acción sobrescribirá la base de datos actual
           </p>
         </div>
 

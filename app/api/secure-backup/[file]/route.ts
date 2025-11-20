@@ -31,7 +31,7 @@ export async function GET(
     });
 
   } catch (e) {
-    console.error("❌ Error en descarga:", e);
+    console.error(" Error en descarga:", e);
     return NextResponse.json({ error: "Error en servidor" }, { status: 500 });
   }
 }
