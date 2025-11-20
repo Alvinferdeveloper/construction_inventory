@@ -2,12 +2,12 @@
 import prisma from "@/app/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { UserForm } from "@/app/(feat)/usuarios/components/user-form-modal"
-import bcrypt from "bcryptjs"
 import { APIError } from "better-auth"
 
 interface CreateUserState extends UserForm {
     success: boolean;
     message: string;
+    generatedPassword?: string;
 }
 import crypto from "crypto";
 import { auth } from "../auth"
@@ -37,8 +37,6 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
 
     try {
         const randomPassword = generateRandomPassword();
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
         const user = await prisma.user.findFirst({
             where: {
                 identification: identification
@@ -57,7 +55,7 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
             body: {
                 name,
                 email,
-                password: hashedPassword,
+                password: randomPassword,
                 phone,
                 direction,
                 identification,
@@ -69,7 +67,8 @@ export async function createUser(prevState: CreateUserState, data: Omit<UserForm
         return {
             ...data,
             success: true,
-            message: "Usuario creado exitosamente."
+            message: "Usuario creado exitosamente.",
+            generatedPassword: randomPassword
         }
     } catch (error) {
         if (error instanceof APIError && error.statusCode === 422) {

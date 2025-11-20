@@ -8,6 +8,7 @@ import { auth } from "@/app/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import SignOutButton from "@/app/(feat)/components/SignOutButton"
+import { Toaster } from "sonner"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="p-6 space-y-6">
           {children}
         </div>
+        <Toaster />
       </main>
     </div>
   )
