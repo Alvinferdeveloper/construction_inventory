@@ -20,6 +20,7 @@ export async function GET(
     }
 
     const data = fs.readFileSync(filePath);
+    fs.unlinkSync(filePath)
 
     return new NextResponse(data, {
       status: 200,
