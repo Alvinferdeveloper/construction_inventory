@@ -11,7 +11,7 @@ interface ExportToExcelProps<T> {
 }
 
 export function ExportToExcel<T>({ data, fileName, buttonText = "Exportar a Excel" }: ExportToExcelProps<T>) {
-    
+
     const exportData = () => {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
@@ -20,7 +20,7 @@ export function ExportToExcel<T>({ data, fileName, buttonText = "Exportar a Exce
     };
 
     return (
-        <Button onClick={exportData} variant="outline" size="sm" className="gap-2">
+        <Button onClick={exportData} variant="outline" size="sm" className="gap-2 bg-green-400 cursor-pointer hover:bg-green-500">
             <FileDown className="w-4 h-4" />
             {buttonText}
         </Button>
