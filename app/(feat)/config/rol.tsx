@@ -12,6 +12,7 @@ import {
   LogOut,
   History,
   Boxes,
+  Key,
 } from "lucide-react"
 
 export const menuByRole: {
@@ -47,8 +48,8 @@ export const menuByRole: {
       icon: <Package size={20} />,
     }, {
       name: "Inventario",
-      href: "/inventario",
       icon: <LayoutDashboard size={20} />,
+      href: "/inventario"
     }, {
       name: "Movimientos",
       icon: <Truck size={20} />,
@@ -64,6 +65,10 @@ export const menuByRole: {
       name: "Restauracion",
       href: "/backup",
       icon: <Database size={20} />,
+    }, {
+      name: "Cambiar Contraseña",
+      href: "/change-password",
+      icon: <Key size={20} />,
     }],
   },
   BODEGUERO: {
@@ -90,6 +95,10 @@ export const menuByRole: {
       name: "Reportes",
       href: "/reportes",
       icon: <FileText size={20} />,
+    }, {
+      name: "Cambiar Contraseña",
+      href: "/change-password",
+      icon: <Key size={20} />,
     }],
   },
   SUPERVISOR: {
@@ -117,6 +126,10 @@ export const menuByRole: {
       name: "Reportes",
       href: "/reportes",
       icon: <FileText size={20} />,
+    }, {
+      name: "Cambiar Contraseña",
+      href: "/change-password",
+      icon: <Key size={20} />,
     }],
   },
   JEFE: {
@@ -140,6 +153,10 @@ export const menuByRole: {
       name: "Reportes",
       href: "/reportes",
       icon: <FileText size={20} />,
+    }, {
+      name: "Cambiar Contraseña",
+      href: "/change-password",
+      icon: <Key size={20} />,
     }],
   },
 }

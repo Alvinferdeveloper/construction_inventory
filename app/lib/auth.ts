@@ -47,7 +47,8 @@ export const auth = betterAuth({
                 return {
                     user: {
                         ...user,
-                        rol: ""
+                        rol: "",
+                        isDefaultPassword: false
                     },
                     session
                 };
@@ -56,7 +57,8 @@ export const auth = betterAuth({
             return {
                 user: {
                     ...user,
-                    rol: userWithRole.rol.nombre
+                    rol: userWithRole.rol.nombre,
+                    isDefaultPassword: userWithRole.isDefaultPassword // Include isDefaultPassword
                 },
                 session
             };

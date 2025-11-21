@@ -19,7 +19,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     redirect('/login')
   }
 
-  const { menu } = menuByRole[session.user.rol]
+  const userRole = session.user.rol
+  const userIsDefaultPassword = session.user.isDefaultPassword;
+
+  const fullMenu = menuByRole[userRole].menu;
+
+  const filteredMenu = fullMenu.filter(item => {
+    if (item.name === "Cambiar Contraseña") {
+      return userIsDefaultPassword;
+    }
+    return true;
+  });
 
   return (
     <div className="flex h-screen bg-background">
@@ -29,14 +39,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="flex items-center gap-4 p-4">
           <AvatarComponent name={session?.user.name} bgColor="bg-red-600" />
           <div className="flex flex-col">
-            <p className="text-lg font-semibold text-foreground">{session?.user.rol}</p>
+            <p className="text-lg font-semibold text-foreground">{userRole}</p>
             <p className="text-sm text-foreground/60">{session?.user.name}</p>
           </div>
         </div>
 
         <nav className="p-4 space-y-1">
-          {menu.map((item, index) => (
-            <SidebarItem key={index} text={item.name} icon={item.icon} href={item.href} isLast={index === menu.length - 1} subItems={item.subItems} />
+          {filteredMenu.map((item, index) => (
+            <SidebarItem key={index} text={item.name} icon={item.icon} href={item.href} isLast={index === filteredMenu.length - 1} subItems={item.subItems} />
           ))}
 
           <Separator className="my-4" />
@@ -55,8 +65,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="p-6 space-y-6">
           {children}
         </div>
-        <Toaster />
+        <Toaster richColors />
       </main>
     </div>
   )
 }
+

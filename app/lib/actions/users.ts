@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache"
 import { UserForm } from "@/app/(feat)/usuarios/components/user-form-modal"
 import { APIError } from "better-auth"
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import { auth } from "@/app/lib/auth"
+import { ChangePasswordState } from "@/app/(feat)/change-password/page"
+import { headers } from "next/headers"
 
 interface CreateUserState extends UserForm {
     success: boolean;
@@ -135,5 +138,39 @@ export async function updateUser(prevState: CreateUserState, data: UserForm & { 
             success: false,
             message: "Error al actualizar el usuario."
         };
+    }
+}
+
+export async function changePassword(prevState: ChangePasswordState, formData: FormData) {
+    const session = await auth.api.getSession({
+        headers: await headers()
+    })
+    const oldPassword = formData.get('oldPassword') as string;
+    const newPassword = formData.get('newPassword') as string;
+    try {
+        await auth.api.changePassword({
+            body: {
+                currentPassword: oldPassword,
+                newPassword,
+            },
+            headers: await headers()
+        })
+
+        await prisma.user.update({
+            where: { id: session?.user?.id },
+            data: {
+                isDefaultPassword: false,
+            },
+        });
+
+        revalidatePath("/");
+        return { success: true, message: "Contraseña cambiada exitosamente." };
+    } catch (error) {
+        console.log(error)
+        if (error instanceof APIError && error.statusCode === 400) {
+            return { success: false, message: "Contraseña Incorrecta" };
+        }
+        console.error("Error changing password:", error);
+        return { success: false, message: "Error al cambiar la contraseña." };
     }
 }
