@@ -111,10 +111,6 @@ export const menuByRole: {
       href: "/requisas",
       icon: <Package size={20} />,
     }, {
-      name: "Estado de Requisas",
-      href: "/estado-de-requisas",
-      icon: <FileText size={20} />,
-    }, {
       name: "Historial de Recibidos",
       href: "/historial-materiales",
       icon: <History size={20} />,
