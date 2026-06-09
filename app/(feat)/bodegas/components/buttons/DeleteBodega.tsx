@@ -1,6 +1,6 @@
 "use client"
 import { DeleteConfirmationModal } from "@/app/(feat)/components/shared/delete-confirmation-modal"
-import { deleteBodega } from "@/app/lib/actions/bodegas"
+import { softDeleteBodega } from "@/app/lib/actions/bodegas"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 
@@ -13,7 +13,7 @@ export default function DeleteBodega({ bodegaId }: DeleteBodegaProps) {
         <DeleteConfirmationModal
             title="Eliminar Bodega"
             description="¿Estás seguro que deseas eliminar la bodega?"
-            onConfirm={() => deleteBodega(bodegaId)}
+            onConfirm={() => softDeleteBodega(bodegaId)}
         >
             <Button
                 variant="ghost"

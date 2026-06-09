@@ -10,7 +10,7 @@ import AsignacionesList from './components/asignaciones-list';
 export default async function AsignacionesPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id || session.user.rol !== 'BODEGUERO') {
-    // Si no es bodeguero, o no hay sesión, redirigir
+  
     redirect('/');
   }
 
@@ -28,7 +28,7 @@ export default async function AsignacionesPage() {
         </div>
       </div>
 
-      {/* Aquí irá la lista de asignaciones. Por ahora, un placeholder. */}
+      
       {detallesAsignados.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 p-12 text-center">
           <h3 className="mt-4 text-lg font-semibold text-foreground">No tienes asignaciones pendientes</h3>
